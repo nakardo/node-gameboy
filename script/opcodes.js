@@ -13,7 +13,7 @@ var parseElement = function (_, elem) {
     if (elem.length !== 3) return null;
 
     var l1 = elem.get(0).data.split(' ')
-      , l2 = elem.get(1).data.match(/^(\d+)\s*(\d+)$/) || []
+      , l2 = elem.get(1).data.match(/^(\w+)\s*([0-9\/]+)$/) || []
       , op = {};
 
     op.mnemonic = l1[0];
@@ -22,6 +22,11 @@ var parseElement = function (_, elem) {
     }
     if (l2.length > 1) {
         op.bytes = parseInt(l2[1]);
+
+        // Note
+        // opcodes with conditional duration (e.g. CALL C,a16 3 12/24)
+        // will keep first value.
+        
         op.cycles = parseInt(l2[2]);
     }
     op.flags_znhc = elem.get(2).data.split(' ');

@@ -452,6 +452,8 @@
                 "NZ",
                 "r8"
             ],
+            "bytes": 2,
+            "cycles": 12,
             "flags_znhc": [
                 "-",
                 "-",
@@ -563,6 +565,8 @@
                 "Z",
                 "r8"
             ],
+            "bytes": 2,
+            "cycles": 12,
             "flags_znhc": [
                 "-",
                 "-",
@@ -674,6 +678,8 @@
                 "NC",
                 "r8"
             ],
+            "bytes": 2,
+            "cycles": 12,
             "flags_znhc": [
                 "-",
                 "-",
@@ -785,6 +791,8 @@
                 "C",
                 "r8"
             ],
+            "bytes": 2,
+            "cycles": 12,
             "flags_znhc": [
                 "-",
                 "-",
@@ -2771,6 +2779,8 @@
             "operands": [
                 "NZ"
             ],
+            "bytes": 1,
+            "cycles": 20,
             "flags_znhc": [
                 "-",
                 "-",
@@ -2798,6 +2808,8 @@
                 "NZ",
                 "a16"
             ],
+            "bytes": 3,
+            "cycles": 16,
             "flags_znhc": [
                 "-",
                 "-",
@@ -2825,6 +2837,8 @@
                 "NZ",
                 "a16"
             ],
+            "bytes": 3,
+            "cycles": 24,
             "flags_znhc": [
                 "-",
                 "-",
@@ -2880,6 +2894,8 @@
             "operands": [
                 "Z"
             ],
+            "bytes": 1,
+            "cycles": 20,
             "flags_znhc": [
                 "-",
                 "-",
@@ -2904,6 +2920,8 @@
                 "Z",
                 "a16"
             ],
+            "bytes": 3,
+            "cycles": 16,
             "flags_znhc": [
                 "-",
                 "-",
@@ -2931,6 +2949,8 @@
                 "Z",
                 "a16"
             ],
+            "bytes": 3,
+            "cycles": 24,
             "flags_znhc": [
                 "-",
                 "-",
@@ -2986,6 +3006,8 @@
             "operands": [
                 "NC"
             ],
+            "bytes": 1,
+            "cycles": 20,
             "flags_znhc": [
                 "-",
                 "-",
@@ -3013,6 +3035,8 @@
                 "NC",
                 "a16"
             ],
+            "bytes": 3,
+            "cycles": 16,
             "flags_znhc": [
                 "-",
                 "-",
@@ -3027,6 +3051,8 @@
                 "NC",
                 "a16"
             ],
+            "bytes": 3,
+            "cycles": 24,
             "flags_znhc": [
                 "-",
                 "-",
@@ -3081,6 +3107,8 @@
             "operands": [
                 "C"
             ],
+            "bytes": 1,
+            "cycles": 20,
             "flags_znhc": [
                 "-",
                 "-",
@@ -3105,6 +3133,8 @@
                 "C",
                 "a16"
             ],
+            "bytes": 3,
+            "cycles": 16,
             "flags_znhc": [
                 "-",
                 "-",
@@ -3119,6 +3149,8 @@
                 "C",
                 "a16"
             ],
+            "bytes": 3,
+            "cycles": 24,
             "flags_znhc": [
                 "-",
                 "-",
