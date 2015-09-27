@@ -31,7 +31,9 @@ var parseElement = function (_, elem) {
 
 var parseTable = function ($, selector) {
 
-    return $('tr:nth-of-type(n+2)', selector)
+    var opcodes = [];
+
+    $('tr:nth-of-type(n+2)', selector)
         .map(function (i, elem) {
             return $('td:nth-of-type(n+2)', elem).get();
         })
@@ -40,8 +42,11 @@ var parseTable = function ($, selector) {
                 return this.type == 'text';
             });
         })
-        .map(parseElement)
-        .get();
+        .map(function (i, elem) {
+            opcodes.push(parseElement(i, elem));
+        });
+
+    return opcodes;
 };
 
 /**
@@ -56,8 +61,8 @@ request(URL, function (err, response, body) {
     var $ = cheerio.load(body);
 
     var opcodes = {
-        unprefixed: parseTable($, 'table:nth-of-type(1)'),
-        cbprefixed: parseTable($, 'table:nth-of-type(2)')
+        unprefixed: parseTable($, 'body > table:nth-of-type(1)'),
+        cbprefixed: parseTable($, 'body > table:nth-of-type(2)')
     };
 
     fs.writeFile(FILE_OUT, JSON.stringify(opcodes, null, 4), function (err) {

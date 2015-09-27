@@ -3020,7 +3020,7 @@
                 "-"
             ]
         },
-        {},
+        null,
         {
             "mnemonic": "CALL",
             "operands": [
@@ -3112,7 +3112,7 @@
                 "-"
             ]
         },
-        {},
+        null,
         {
             "mnemonic": "CALL",
             "operands": [
@@ -3126,7 +3126,7 @@
                 "-"
             ]
         },
-        {},
+        null,
         {
             "mnemonic": "SBC",
             "operands": [
@@ -3200,8 +3200,8 @@
                 "-"
             ]
         },
-        {},
-        {},
+        null,
+        null,
         {
             "mnemonic": "PUSH",
             "operands": [
@@ -3288,9 +3288,9 @@
                 "-"
             ]
         },
-        {},
-        {},
-        {},
+        null,
+        null,
+        null,
         {
             "mnemonic": "XOR",
             "operands": [
@@ -3374,7 +3374,7 @@
                 "-"
             ]
         },
-        {},
+        null,
         {
             "mnemonic": "PUSH",
             "operands": [
@@ -3473,8 +3473,8 @@
                 "-"
             ]
         },
-        {},
-        {},
+        null,
+        null,
         {
             "mnemonic": "CP",
             "operands": [
@@ -3502,30 +3502,7 @@
                 "-",
                 "-"
             ]
-        },
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {}
+        }
     ],
     "cbprefixed": [
         {
