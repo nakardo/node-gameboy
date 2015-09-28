@@ -26,7 +26,7 @@ var parseElement = function (_, elem) {
         // Note
         // opcodes with conditional duration (e.g. CALL C,a16 3 12/24)
         // will keep first value.
-        
+
         op.cycles = parseInt(l2[2]);
     }
     op.flags_znhc = elem.get(2).data.split(' ');
