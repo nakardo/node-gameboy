@@ -6,12 +6,18 @@ var parse = function (inst) {
 
     return _.chain(inst)
         .compact()
-        .uniq('mnemonic')
-        .map(function (inst) { return inst.mnemonic; })
-        .sortBy(function (s) { return s.charCodeAt(); })
-        .value()
-        .toString();
+        .map(function (inst) {
+            if (!inst.operands) return null;
+            return JSON.stringify(inst.operands[1]);
+        })
+        .uniq()
+        // .sortBy(function (s) { return s.charCodeAt(); })
+        .value();
 };
 
-console.log('unprefixed:', parse(opcodes.unprefixed));
-console.log('cbprefixed:', parse(opcodes.cbprefixed));
+var unprefixed = parse(opcodes.unprefixed);
+var cbprefixed = parse(opcodes.cbprefixed);
+
+// console.log('unprefixed:', unprefixed);
+// console.log('cbprefixed:', cbprefixed);
+console.log('all:', _.merge(unprefixed, cbprefixed));
