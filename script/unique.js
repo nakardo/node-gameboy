@@ -1,3 +1,5 @@
+#! /usr/local/bin/node
+
 var _ = require('lodash');
 var opcodes = require('../support/opcodes.json');
 
