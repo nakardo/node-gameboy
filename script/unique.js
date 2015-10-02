@@ -10,7 +10,7 @@ var parse = function (inst) {
         .compact()
         .map(function (inst) {
             if (!inst.operands) return null;
-            return JSON.stringify(inst.operands[1]);
+            return JSON.stringify(inst.operands[0]);
         })
         .uniq()
         // .sortBy(function (s) { return s.charCodeAt(); })
