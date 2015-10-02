@@ -21,13 +21,13 @@ var parseElement = function (_, elem) {
         op.operands = l1[1].split(',');
     }
     if (l2.length > 1) {
-        op.bytes = parseInt(l2[1]);
+        op.bytes = parseInt(l2[1], 10);
 
         // Note
         // opcodes with conditional duration (e.g. CALL C,a16 3 12/24)
         // will keep first value.
 
-        op.cycles = parseInt(l2[2]);
+        op.cycles = parseInt(l2[2], 10);
     }
     op.flags_znhc = elem.get(2).data.split(' ');
 
