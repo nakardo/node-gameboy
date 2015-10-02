@@ -20,6 +20,6 @@ var parse = function (inst) {
 var unprefixed = parse(opcodes.unprefixed);
 var cbprefixed = parse(opcodes.cbprefixed);
 
-// console.log('unprefixed:', unprefixed);
+console.log('unprefixed:', unprefixed);
 // console.log('cbprefixed:', cbprefixed);
-console.log('all:', _.merge(unprefixed, cbprefixed));
+// console.log('all:', _.merge(unprefixed, cbprefixed));
