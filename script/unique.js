@@ -10,7 +10,7 @@ var parse = function (inst) {
         .compact()
         .map(function (inst) {
             if (!inst.operands) return null;
-            return JSON.stringify(inst.operands[0]);
+            return JSON.stringify(inst.operands[1]);
         })
         .uniq()
         // .sortBy(function (s) { return s.charCodeAt(); })
@@ -20,6 +20,6 @@ var parse = function (inst) {
 var unprefixed = parse(opcodes.unprefixed);
 var cbprefixed = parse(opcodes.cbprefixed);
 
-console.log('unprefixed:', unprefixed);
+// console.log('unprefixed:', unprefixed);
 // console.log('cbprefixed:', cbprefixed);
-// console.log('all:', _.merge(unprefixed, cbprefixed));
+console.log('all:', _.merge(unprefixed, cbprefixed));
