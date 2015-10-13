@@ -3223,7 +3223,7 @@
                 "(C)",
                 "A"
             ],
-            "bytes": 2,
+            "bytes": 1,
             "cycles": 8,
             "flags_znhc": [
                 "-",
@@ -3386,7 +3386,7 @@
                 "A",
                 "(C)"
             ],
-            "bytes": 2,
+            "bytes": 1,
             "cycles": 8,
             "flags_znhc": [
                 "-",
