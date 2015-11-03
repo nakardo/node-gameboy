@@ -13,11 +13,11 @@
   "author": "Diego Acosta <diegonake@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "cheerio": "^0.19.0",
-    "debug": "^2.2.0",
-    "request": "^2.63.0"
+    "debug": "^2.2.0"
   },
   "devDependencies": {
-    "lodash": "^3.10.1"
+    "cheerio": "^0.19.0",
+    "lodash": "^3.10.1",
+    "request": "^2.65.0"
   }
 }
