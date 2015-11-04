@@ -54,12 +54,8 @@ var parseTable = function ($, selector) {
     return opcodes;
 };
 
-/**
- * Docs
- *
- * - http://www.pastraiser.com/cpu/gameboy/gameboy_opcodes.html
- * - https://github.com/NewbiZ/gbemu/tree/master/scripts
- */
+// - http://www.pastraiser.com/cpu/gameboy/gameboy_opcodes.html
+// - https://github.com/NewbiZ/gbemu/tree/master/scripts
 
 request(URL, function (err, response, body) {
 
