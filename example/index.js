@@ -1,7 +1,7 @@
 'use strict';
 
 var Gameboy = require('../lib/gameboy')();
-var Cart = require('../lib/cart')('./example/roms/tetris.gb');
+var Cart = require('../lib/cart')('./roms/tetris.gb');
 
 
 Gameboy.insertCart(Cart);
