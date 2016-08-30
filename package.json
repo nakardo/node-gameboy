@@ -1,23 +1,24 @@
 {
   "name": "gameboy",
   "version": "0.0.0",
-  "description": "A gameboy emulator written in javascript",
-  "main": "lib/gameboy.js",
+  "description": "A gameboy emulator written in Node.js",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
+    "gameboy",
+    "nintendo",
     "emulator",
-    "gameboy"
+    "console",
+    "handheld"
   ],
   "author": "Diego Acosta <diegonake@gmail.com>",
   "license": "MIT",
+  "directories": {
+    "test": "test"
+  },
   "dependencies": {
     "debug": "^2.2.0"
-  },
-  "devDependencies": {
-    "cheerio": "^0.19.0",
-    "lodash": "^3.10.1",
-    "request": "^2.65.0"
   }
 }
