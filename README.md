@@ -14,3 +14,4 @@ A gameboy emulator written in JavaScript
 # Misc
 
 - LY (FF44) - http://www.romhacking.net/forum/index.php?topic=17770.0
+- Game Loop: http://stackoverflow.com/questions/32587985/node-js-alternative-to-setinterval-which-is-more-precise-for-game-loop
