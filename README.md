@@ -9,3 +9,6 @@ A gameboy emulator written in JavaScript
 - Memory Map: http://gameboy.mongenel.com/dmg/asmmemmap.html
 - Timers: http://gbdev.gg8.se/wiki/articles/Timer_and_Divider_Registers
 - Examples: http://www.codeslinger.co.uk/pages/projects/gameboy/beginning.html
+
+# Misc
+- LY (FF44) - http://www.romhacking.net/forum/index.php?topic=17770.0
