@@ -6,11 +6,14 @@ const fs = require('fs');
 const Gameboy = require('../');
 
 
-fs.readFile('./roms/tetris.gb', (err, data) => {
+const gameboy = new Gameboy();
+gameboy.loadCart(fs.readFileSync('./roms/tetris.gb'));
+gameboy.powerOn();
 
-    if (err) throw err;
 
-    const gameboy = new Gameboy();
-    gameboy.loadCart(data);
-    gameboy.powerOn();
+let i = 0;
+
+gameboy.screen.on('frame', (data) => {
+    if (++i % 60 != 0) return;
+    fs.writeFile(`./screenshot/${i / 60}.png`, data);
 });
