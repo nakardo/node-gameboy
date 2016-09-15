@@ -14,6 +14,6 @@ gameboy.powerOn();
 let i = 0;
 
 gameboy.screen.on('frame', (data) => {
-    if (++i % 60) return;
-    fs.writeFile(`./screenshot/${i / 60}.png`, data);
+    if (++i % 30) return;
+    fs.writeFile(`./screenshot/${i / 30}.png`, data);
 });
