@@ -6,6 +6,7 @@ A gameboy emulator written in JavaScript
 
 - General: http://fms.komkon.org/GameBoy/Tech/Software.html
 - General: http://bgb.bircd.org/pandocs.htm
+- General: https://www.cl.cam.ac.uk/~pv273/slides/emulation.pdf
 - Opcodes: https://github.com/simias/gb-rs
 - Memory Map: http://gameboy.mongenel.com/dmg/asmmemmap.html
 - Timers: http://gbdev.gg8.se/wiki/articles/Timer_and_Divider_Registers
