@@ -5,7 +5,7 @@ const Gameboy = require('../');
 
 
 const gameboy = new Gameboy();
-gameboy.loadCart(fs.readFileSync('./roms/tetris.gb'));
+gameboy.loadCart(fs.readFileSync('./roms/drmario.gb'));
 gameboy.powerOn();
 
 
