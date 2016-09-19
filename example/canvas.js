@@ -2,9 +2,10 @@
 
 const fs = require('fs');
 const Gameboy = require('../');
+const Canvas = require('canvas');
 
 
-const gameboy = new Gameboy();
+const gameboy = new Gameboy(new Canvas(160, 144));
 gameboy.loadCart(fs.readFileSync('./roms/drmario.gb'));
 gameboy.powerOn();
 
