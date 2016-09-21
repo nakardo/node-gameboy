@@ -1,0 +1,33 @@
+<html>
+<body>
+    <canvas id="frame" width="160" height="144" />
+    <script>
+        var canvas = document.getElementById('frame');
+        const ctx = canvas.getContext('2d');
+
+        function render(x, y) {
+            var image = ctx.createImageData(1, 1);
+            var imageData = image.data;
+
+            imageData[0] = 255 * Math.random();
+            imageData[1] = 255 * Math.random();
+            imageData[2] = 255 * Math.random();
+            imageData[3] = 255;
+
+            ctx.putImageData(image, x, y);
+        }
+
+        function loop() {
+            var date = +new Date();
+            for (var y = 0; y < 144; y++) {
+                for (var x = 0; x < 160; x++) {
+                    render(x, y);
+                }
+            }
+            console.log(+new Date() - date);
+        }
+
+        setInterval(loop, 1000 / 60);
+    </script>
+</body>
+</html>
