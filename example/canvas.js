@@ -6,7 +6,7 @@ const Canvas = require('canvas');
 
 
 const gameboy = new Gameboy(new Canvas(160, 144));
-gameboy.loadCart(fs.readFileSync('./roms/opus5.gb'));
+gameboy.loadCart(fs.readFileSync('./roms/drmario.gb'));
 gameboy.powerOn();
 
 
