@@ -2,20 +2,25 @@
 <body>
     <canvas id="frame" width="160" height="144" />
     <script>
-        var canvas = document.getElementById('frame');
-        const ctx = canvas.getContext('2d');
+        var offcanvas = document.createElement('canvas');
+        offcanvas.width = 160;
+        offcanvas.height = 144;
+
+        var offctx = offcanvas.getContext('2d');
+        var imageData = offctx.getImageData(0, 0, 160, 144);
+        var data = imageData.data;
 
         function render(x, y) {
-            var image = ctx.createImageData(1, 1);
-            var imageData = image.data;
+            var index = (y * 160 + x) * 4;
 
-            imageData[0] = 255 * Math.random();
-            imageData[1] = 255 * Math.random();
-            imageData[2] = 255 * Math.random();
-            imageData[3] = 255;
-
-            ctx.putImageData(image, x, y);
+            data[index] = 255 * Math.random();
+            data[++index] = 255 * Math.random();
+            data[++index] = 255 * Math.random();
+            data[++index] = 255;
         }
+
+        var canvas = document.getElementById('frame');
+        var ctx = canvas.getContext('2d');
 
         function loop() {
             var date = +new Date();
@@ -24,6 +29,9 @@
                     render(x, y);
                 }
             }
+            offctx.putImageData(imageData, 0, 0);
+            ctx.drawImage(offcanvas, 0, 0);
+
             console.log(+new Date() - date);
         }
 
