@@ -1,5 +1,7 @@
 'use strict';
 
+localStorage.debug = 'gpu';
+
 const fs = require('fs');
 const Gameboy = require('../');
 
