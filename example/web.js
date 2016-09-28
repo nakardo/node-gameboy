@@ -9,7 +9,7 @@ const Gameboy = require('../');
 localStorage.debug = 'gpu';
 
 const gameboy = new Gameboy(bios);
-gameboy.loadCart(fs.readFileSync('./roms/opus5.gb'));
+gameboy.loadCart(cart);
 gameboy.powerOn();
 
 const canvas = document.getElementById('frame');
