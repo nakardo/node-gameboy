@@ -8,7 +8,7 @@ const Gameboy = require('../');
 
 localStorage.debug = 'gpu';
 
-const gameboy = new Gameboy({ bios });
+const gameboy = new Gameboy(bios);
 gameboy.loadCart(fs.readFileSync('./roms/opus5.gb'));
 gameboy.powerOn();
 
