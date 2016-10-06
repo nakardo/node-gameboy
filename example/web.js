@@ -6,7 +6,7 @@ const bios = fs.readFileSync('./support/bios.bin');
 const Gameboy = require('../');
 
 
-localStorage.debug = 'gpu';
+localStorage.debug = 'gpu:render';
 
 const gameboy = new Gameboy(bios);
 gameboy.loadCart(cart);
