@@ -6,11 +6,18 @@ const bios = fs.readFileSync('./support/bios.bin');
 const Gameboy = require('../');
 
 
-localStorage.debug = 'gpu:render';
+localStorage.debug = 'joypad';
 
 const gameboy = new Gameboy(bios);
 gameboy.loadCart(cart);
 gameboy.powerOn();
+
+// Joypad
+
+document.onkeydown = (e) => gameboy.joypad.keyDown(e);
+document.onkeyup = (e) => gameboy.joypad.keyUp(e);
+
+// Render
 
 const canvas = document.getElementById('frame');
 const ctx = canvas.getContext('2d');
