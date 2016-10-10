@@ -14,8 +14,8 @@ gameboy.powerOn();
 
 // Joypad
 
-document.addEventListener('keydown', (e) => gameboy.joypad.keyDown(e));
-document.addEventListener('keyup', (e) => gameboy.joypad.keyUp(e));
+document.addEventListener('keydown', (e) => gameboy.joypad.keyDown(e.keyCode));
+document.addEventListener('keyup', (e) => gameboy.joypad.keyUp(e.keyCode));
 
 // Render
 

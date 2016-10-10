@@ -12,6 +12,7 @@ A gameboy emulator written in JavaScript
 - Banking: http://gbdev.gg8.se/wiki/articles/Memory_Bank_Controllers#0000-3FFF_-_ROM_Bank_00_.28Read_Only.29
 - Timers: http://gbdev.gg8.se/wiki/articles/Timer_and_Divider_Registers
 - Tutorial: http://www.codeslinger.co.uk/pages/projects/gameboy/beginning.html
+- Joypad: http://www.inf.ufrgs.br/~gozardo/gameboy-gamepad/index.html
 
 # Misc
 
