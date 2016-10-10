@@ -4,7 +4,7 @@
  * Tests:
  *
  * Passed
- * - 03-op sp,h.gb
+ * - 03-op sp,hl.gb
  * - 04-op r,imm.gb
  * - 05-op rp.gb
  * - 06-ld r,r.gb
@@ -22,12 +22,12 @@
  */
 
 const fs = require('fs');
-const cart = fs.readFileSync('./roms/opus5.gb');
+const cart = fs.readFileSync('./roms/02-interrupts.gb');
 const bios = fs.readFileSync('./support/bios.bin');
 const Gameboy = require('../');
 
 
-const gameboy = new Gameboy(bios);
+const gameboy = new Gameboy();
 gameboy.loadCart(cart);
 gameboy.powerOn();
 
