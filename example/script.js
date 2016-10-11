@@ -22,7 +22,7 @@
  */
 
 const fs = require('fs');
-const cart = fs.readFileSync('./roms/02-interrupts.gb');
+const cart = fs.readFileSync('./roms/09-op r,r.gb');
 const bios = fs.readFileSync('./support/bios.bin');
 const Gameboy = require('../');
 
