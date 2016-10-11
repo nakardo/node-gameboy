@@ -14,15 +14,13 @@
  * Failed
  * - 02-interrupts.gb
  * - 08-misc instrs.gb
+ * - 07-jr,jp,call,ret,rst.gb
  * - 09-op r,r.gb
  * - 11-op a,(hl).gb
- *
- * Not working:
- * - 07-jr,jp,call,ret,rst.gb
  */
 
 const fs = require('fs');
-const cart = fs.readFileSync('./roms/08-misc instrs.gb');
+const cart = fs.readFileSync('./roms/07-jr,jp,call,ret,rst.gb');
 const bios = fs.readFileSync('./support/bios.bin');
 const Gameboy = require('../');
 
