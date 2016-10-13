@@ -7,6 +7,7 @@ A gameboy emulator written in JavaScript
 - General: http://fms.komkon.org/GameBoy/Tech/Software.html
 - General: http://bgb.bircd.org/pandocs.htm
 - General: https://www.cl.cam.ac.uk/~pv273/slides/emulation.pdf
+- Opcodes: http://gameboy.mongenel.com/dmg/opcodes.html
 - Opcodes: https://github.com/simias/gb-rs
 - Memory Map: http://gameboy.mongenel.com/dmg/asmmemmap.html
 - Banking: http://gbdev.gg8.se/wiki/articles/Memory_Bank_Controllers#0000-3FFF_-_ROM_Bank_00_.28Read_Only.29
