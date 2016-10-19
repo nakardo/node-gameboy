@@ -1,7 +1,7 @@
 'use strict';
 
 const fs = require('fs');
-const file = fs.readFileSync('./roms/cpu_instrs/cpu_instrs.gb');
+const file = fs.readFileSync('./roms/drmario.gb');
 const Cart = require('../lib/cart');
 
 
