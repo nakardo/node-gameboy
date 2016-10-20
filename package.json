@@ -1,5 +1,5 @@
 {
-  "name": "gb-node",
+  "name": "node-gameboy",
   "version": "0.0.0",
   "description": "gameboy emulator written for node",
   "main": "index.js",

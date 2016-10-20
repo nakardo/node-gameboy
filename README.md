@@ -1,4 +1,4 @@
-# gb-node
+# node-gameboy
 
 A gameboy emulator written in JavaScript
 
