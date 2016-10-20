@@ -30,8 +30,8 @@ const Gameboy = require('../');
 const gameboy = new Gameboy(cart);
 gameboy.powerOn();
 
-// let i = 0;
-// gameboy.gpu.on('frame', (canvas) => {
-//     if (++i % 60) return;
-//     fs.writeFile(`./screenshot/${i / 60}.png`, canvas.toBuffer());
-// });
+let i = 0;
+gameboy.gpu.on('frame', (canvas) => {
+    if (++i % 60) return;
+    fs.writeFile(`./screenshot/${i / 60}.png`, canvas.toBuffer());
+});
