@@ -27,7 +27,7 @@ const bios = fs.readFileSync('./support/bios.bin');
 const Gameboy = require('../');
 
 
-const gameboy = new Gameboy(cart, bios);
+const gameboy = new Gameboy(cart);
 gameboy.powerOn();
 
 // let i = 0;
