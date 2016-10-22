@@ -8,7 +8,7 @@ const Gameboy = require('../');
 
 localStorage.debug = 'gpu:render';
 
-const gameboy = new Gameboy(cart);
+const gameboy = new Gameboy(cart, bios);
 gameboy.powerOn();
 
 // Joypad
