@@ -22,7 +22,7 @@
  */
 
 const fs = require('fs');
-const cart = fs.readFileSync('./roms/tetris.gb');
+const cart = fs.readFileSync('./roms/opus5/opus5.gb');
 const bios = fs.readFileSync('./support/bios.bin');
 const Gameboy = require('../');
 
