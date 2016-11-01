@@ -1,7 +1,7 @@
 {
   "name": "node-gameboy",
   "version": "0.0.0",
-  "description": "gameboy emulator written for node",
+  "description": "A gameboy emulator written in JavaScript",
   "main": "index.js",
   "scripts": {
     "build": "browserify -x canvas -t brfs example/web.js > build/bundle.js"
