@@ -25,6 +25,7 @@
   },
   "devDependencies": {
     "brfs": "^1.4.3",
-    "browserify": "^13.1.0"
+    "browserify": "^13.1.0",
+    "gifencoder": "^1.0.6"
   }
 }

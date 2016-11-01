@@ -22,7 +22,7 @@
  */
 
 const fs = require('fs');
-const cart = fs.readFileSync('./roms/opus5/opus5.gb');
+const cart = fs.readFileSync('./roms/sprite_test_01/sprite_test_01.gb');
 const bios = fs.readFileSync('./support/bios.bin');
 const Gameboy = require('../');
 
