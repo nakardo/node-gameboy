@@ -27,6 +27,7 @@ build/Release
 node_modules
 
 # Roms
+support
 roms
 
 # Generated files
