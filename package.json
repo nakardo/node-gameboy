@@ -4,7 +4,8 @@
   "description": "A gameboy emulator written in JavaScript",
   "main": "index.js",
   "scripts": {
-    "build": "browserify -x canvas -t brfs example/web.js > build/bundle.js"
+    "build": "browserify example/web.js -o static/bundle.js",
+    "watch": "watchify example/web.js -o static/bundle.js"
   },
   "keywords": [
     "gameboy",
@@ -18,6 +19,15 @@
   "directories": {
     "test": "test"
   },
+  "browserify": {
+    "transform": [
+      "brfs"
+    ]
+  },
+  "browser": {
+    "canvas": false,
+    "debug": "./lib/debug.js"
+  },
   "dependencies": {
     "canvas": "^1.4.0",
     "debug": "^2.2.0",
@@ -26,6 +36,7 @@
   "devDependencies": {
     "brfs": "^1.4.3",
     "browserify": "^13.1.0",
-    "gifencoder": "^1.0.6"
+    "gifencoder": "^1.0.6",
+    "watchify": "^3.7.0"
   }
 }
