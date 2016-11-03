@@ -29,6 +29,8 @@ http://nakardo.github.io/node-gameboy/
 ![drmario2](https://raw.github.com/nakardo/node-gameboy/master/images/drmario2.png)
 ![tetris](https://raw.github.com/nakardo/node-gameboy/master/images/tetris.png)
 ![tetris2](https://raw.github.com/nakardo/node-gameboy/master/images/tetris2.png)
+![fifa](https://raw.github.com/nakardo/node-gameboy/master/images/fifa.png)
+![fifa2](https://raw.github.com/nakardo/node-gameboy/master/images/fifa2.png)
 ![opus5](https://raw.github.com/nakardo/node-gameboy/master/images/opus5.png)
 ![cpu_instrs](https://raw.github.com/nakardo/node-gameboy/master/images/cpu_instrs.png)
 
