@@ -1,6 +1,6 @@
 # node-gameboy
 
-A gameboy emulator written in JavaScript
+A Gameboy emulator written in JavaScript
 
 ## About
 
@@ -13,7 +13,7 @@ http://nakardo.github.io/node-gameboy/
 
 ### Controllers
 
-| Key        | Mapping    |
+| Button     | Key        |
 |------------|------------|
 | Directions | Arrow Keys |
 | A          | Z          |
