@@ -1,15 +1,32 @@
 'use strict';
 
-const fs = require('fs');
-const cart = fs.readFileSync('./roms/marioland.gb');
-const bios = fs.readFileSync('./support/bios.bin');
 const Gameboy = require('../');
 
 
 localStorage.debug = '';
 
-const gameboy = new Gameboy(cart, bios);
-gameboy.powerOn();
+const gameboy = new Gameboy();
+
+// Buttons
+
+const inputAction = document.getElementById('input');
+const pauseAction = document.getElementById('pause');
+const resetAction = document.getElementById('reset');
+
+function loadFile () {
+    if (!this.files.length) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+        gameboy.loadCart(reader.result);
+        gameboy.start();
+    };
+    reader.readAsArrayBuffer(this.files[0]);
+}
+
+inputAction.addEventListener('change', loadFile);
+pauseAction.addEventListener('click', function () { gameboy.pause() });
+resetAction.addEventListener('click', function () { gameboy.reset() });
 
 // Joypad
 
