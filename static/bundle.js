@@ -827,14 +827,14 @@ var Gpu = function (_EventEmitter) {
 
             if (this._lcdc & 1) {
                 var map = this._lcdc >> 3 & 1;
-                this._drawLayer(line, this._scx, this._scy, map, data);
+                this._drawBackground(line, this._scx, this._scy, map, data);
             }
 
             // Window
 
-            if (this._lcdc & 0x20) {
+            if (this._lcdc & 0x20 && line >= this._wy) {
                 var _map = this._lcdc >> 6 & 1;
-                this._drawLayer(line, this._wx - 7, this._wy, _map, data);
+                this._drawWindow(line, this._wx - 7, this._wy, _map, data);
             }
 
             // Sprites
@@ -868,8 +868,8 @@ var Gpu = function (_EventEmitter) {
             return [GRAY_SHADES[palette & 3], GRAY_SHADES[palette >> 2 & 3], GRAY_SHADES[palette >> 4 & 3], GRAY_SHADES[palette >> 6 & 3]];
         }
     }, {
-        key: '_drawLayer',
-        value: function _drawLayer(line, offsetX, offsetY, mapSelect, dataSelect) {
+        key: '_drawBackground',
+        value: function _drawBackground(line, offsetX, offsetY, mapSelect, dataSelect) {
             var map = this._video.bgMap[mapSelect];
             var y = offsetY + line;
 
@@ -878,6 +878,30 @@ var Gpu = function (_EventEmitter) {
 
                 var col = (x & 0xff) >> 3;
                 var row = (y & 0xff) >> 3;
+
+                var n = map[row * 32 + col];
+                var data = this._video.tiles[dataSelect ? n : 256 + n.signed()];
+                var shade = this._bgpal[data[y & 7][x & 7]];
+
+                var offset = (line * FRAME_WIDTH + i) * 4;
+
+                this._data[offset] = shade[0];
+                this._data[++offset] = shade[1];
+                this._data[++offset] = shade[2];
+                this._data[++offset] = 255;
+            }
+        }
+    }, {
+        key: '_drawWindow',
+        value: function _drawWindow(line, posX, posY, mapSelect, dataSelect) {
+            var map = this._video.bgMap[mapSelect];
+            var y = line - posY;
+
+            for (var i = posX; i < FRAME_WIDTH; i++) {
+                var x = i - posX;
+
+                var col = x >> 3;
+                var row = y >> 3;
 
                 var n = map[row * 32 + col];
                 var data = this._video.tiles[dataSelect ? n : 256 + n.signed()];
