@@ -22,13 +22,12 @@
  */
 
 const fs = require('fs');
-const cart = fs.readFileSync('./roms/tetris.gb');
-const bios = fs.readFileSync('./support/bios.bin');
-const Gameboy = require('../');
+const Gameboy = require('../../');
 
 
-const gameboy = new Gameboy(cart, bios);
-gameboy.powerOn();
+const gameboy = new Gameboy();
+gameboy.loadCart(fs.readFileSync('./roms/tetris.gb'));
+gameboy.start();
 
 let i = 0;
 gameboy.gpu.on('frame', (canvas) => {
