@@ -13,6 +13,8 @@ io.on('connection', function (socket) {
     socket.on('keyup', (keyCode) => gameboy.joypad.keyUp(keyCode));
 });
 
+let i = 0;
 gameboy.gpu.on('frame', (canvas) => {
+    if (++i % 2) return;
     io.emit('frame', canvas.toDataURL());
 });
