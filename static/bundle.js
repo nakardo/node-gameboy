@@ -50,12 +50,7 @@ gameboy.gpu.on('frame', function (offcanvas) {
     ctx.drawImage(offcanvas, 0, 0);
 });
 
-},{"../":2}],2:[function(require,module,exports){
-'use strict';
-
-module.exports = require('./lib/gameboy');
-
-},{"./lib/gameboy":7}],3:[function(require,module,exports){
+},{"../":6}],2:[function(require,module,exports){
 'use strict';
 
 function Canvas() {
@@ -75,7 +70,7 @@ function Canvas() {
 
 module.exports = Canvas;
 
-},{"canvas":18}],4:[function(require,module,exports){
+},{"canvas":17}],3:[function(require,module,exports){
 'use strict';
 
 /**
@@ -256,7 +251,7 @@ var Cart = function () {
 
 module.exports = Cart;
 
-},{}],5:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 'use strict';
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
@@ -544,14 +539,14 @@ var Cpu = function () {
 
 module.exports = Cpu;
 
-},{"./interrupts":9,"./opcodes":14,"debug":6,"raf":22}],6:[function(require,module,exports){
+},{"./interrupts":8,"./opcodes":13,"debug":5,"raf":21}],5:[function(require,module,exports){
 "use strict";
 
 module.exports = function () {
   return function () {};
 };
 
-},{}],7:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -692,7 +687,7 @@ var Gameboy = function () {
 
 module.exports = Gameboy;
 
-},{"./cpu":5,"./gpu":8,"./joypad":10,"./lcd":11,"./mmu":12,"./timer":16,"./video":17}],8:[function(require,module,exports){
+},{"./cpu":4,"./gpu":7,"./joypad":9,"./lcd":10,"./mmu":11,"./timer":15,"./video":16}],7:[function(require,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -972,7 +967,7 @@ var Gpu = function (_EventEmitter) {
 
 module.exports = Gpu;
 
-},{"./canvas":3,"./number":13,"./registers":15,"debug":6,"events":19}],9:[function(require,module,exports){
+},{"./canvas":2,"./number":12,"./registers":14,"debug":5,"events":18}],8:[function(require,module,exports){
 'use strict';
 
 /**
@@ -1029,7 +1024,7 @@ exports.INT_58 = 1 << 3;
  */
 exports.INT_60 = 1 << 4;
 
-},{}],10:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -1120,7 +1115,7 @@ var Joypad = function () {
 
 module.exports = Joypad;
 
-},{"./interrupts":9,"./registers":15,"debug":6}],11:[function(require,module,exports){
+},{"./interrupts":8,"./registers":14,"debug":5}],10:[function(require,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -1268,7 +1263,7 @@ var Lcd = function () {
 
 module.exports = Lcd;
 
-},{"./interrupts":9,"./registers":15,"debug":6}],12:[function(require,module,exports){
+},{"./interrupts":8,"./registers":14,"debug":5}],11:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -1475,14 +1470,14 @@ var Mmu = function () {
 module.exports = Mmu;
 
 }).call(this,require('_process'))
-},{"./cart":4,"./registers":15,"_process":21,"debug":6}],13:[function(require,module,exports){
+},{"./cart":3,"./registers":14,"_process":20,"debug":5}],12:[function(require,module,exports){
 'use strict';
 
 Number.prototype.signed = function () {
     return this & 0x80 ? -((0xff & ~this) + 1) : this;
 };
 
-},{}],14:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 'use strict';
 
 require('./number');
@@ -4546,7 +4541,7 @@ $[0xd9] = ['RETI', function (cpu, mmu) {
     return 16;
 }];
 
-},{"./number":13}],15:[function(require,module,exports){
+},{"./number":12}],14:[function(require,module,exports){
 'use strict';
 
 /**
@@ -4762,7 +4757,7 @@ exports.WNDPOSX = 0xff4b;
  */
 exports.IE = 0xffff;
 
-},{}],16:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -4894,7 +4889,7 @@ var Timer = function () {
 
 module.exports = Timer;
 
-},{"./interrupts":9,"./registers":15,"debug":6}],17:[function(require,module,exports){
+},{"./interrupts":8,"./registers":14,"debug":5}],16:[function(require,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -5003,10 +4998,10 @@ var Video = function () {
 
 module.exports = Video;
 
-},{"debug":6}],18:[function(require,module,exports){
+},{"debug":5}],17:[function(require,module,exports){
 "use strict";
 
-},{}],19:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -5310,7 +5305,7 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],20:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 (function (process){
 // Generated by CoffeeScript 1.7.1
 (function() {
@@ -5346,7 +5341,7 @@ function isUndefined(arg) {
 }).call(this);
 
 }).call(this,require('_process'))
-},{"_process":21}],21:[function(require,module,exports){
+},{"_process":20}],20:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -5528,7 +5523,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],22:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 (function (global){
 var now = require('performance-now')
   , root = typeof window === 'undefined' ? global : window
@@ -5604,4 +5599,4 @@ module.exports.polyfill = function() {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"performance-now":20}]},{},[1]);
+},{"performance-now":19}]},{},[1]);
