@@ -2,7 +2,7 @@
   "name": "node-gameboy",
   "version": "0.0.0",
   "description": "A Gameboy emulator written in JavaScript",
-  "main": "index.js",
+  "main": "lib/gameboy.js",
   "scripts": {
     "build": "browserify example/web.js -o static/bundle.js",
     "build-min": "browserify example/web.js | uglifyjs -cm > static/bundle.min.js",
