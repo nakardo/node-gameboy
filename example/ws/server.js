@@ -14,5 +14,5 @@ io.on('connection', function (socket) {
 });
 
 gameboy.gpu.on('frame', (canvas) => {
-    io.emit('frame', canvas.toBuffer());
+    io.emit('frame', canvas.toDataURL());
 });

@@ -31,19 +31,15 @@
 
         var image = new Image;
         var lastImage;
-        
+
         // From: https://github.com/rauchg/weplay-web/blob/master/client/app.js
 
         socket.on('frame', function (data) {
             if (lastImage && 'undefined' != typeof URL) {
                 URL.revokeObjectURL(lastImage);
             }
-
-            var blob = new Blob([data], { type: 'image/png' });
-            image.onload = function () {
-                ctx.drawImage(image, 0, 0);
-            };
-            image.src = URL.createObjectURL(blob);
+            image.onload = function () { ctx.drawImage(image, 0, 0); };
+            image.src = data;
         });
 
         document.addEventListener('keydown', function (e) {
