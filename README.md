@@ -2,10 +2,12 @@
 
 A Gameboy emulator written in JavaScript
 
+[![npm version](https://badge.fury.io/js/node-gameboy.svg)](https://badge.fury.io/js/node-gameboy)
+
 ## About
 
-This is a WIP project, some basic games as Tetris and Mario Land are playable
-though some artifacts and crashes may happen.
+This is a WIP project, some games are playable though some artifacts and crashes
+may happen. Emulator can be run either on web browsers or server side. 
 
 ## Online Build
 
@@ -22,6 +24,8 @@ http://nakardo.github.io/node-gameboy/
 | Start      | Enter      |
 
 ## Screenshots
+
+### Commercial Roms
 
 ![marioland](https://raw.github.com/nakardo/node-gameboy/master/images/marioland.png)
 ![marioland](https://raw.github.com/nakardo/node-gameboy/master/images/marioland2.png)
