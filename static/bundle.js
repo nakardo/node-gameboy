@@ -26,10 +26,10 @@ function loadFile() {
 
 inputAction.addEventListener('change', loadFile);
 pauseAction.addEventListener('click', function () {
-    gameboy.pause();
+    return gameboy.pauseResume();
 });
 resetAction.addEventListener('click', function () {
-    gameboy.reset();
+    return gameboy.reset();
 });
 
 // Joypad
@@ -284,7 +284,9 @@ var Cpu = function () {
         this._timer = timer;
         this._lcd = lcd;
 
-        this._stop = true;
+        // Gameloop
+
+        this._loop = null;
 
         // Interrupt Master Enable
 
@@ -325,28 +327,17 @@ var Cpu = function () {
 
             debug('start');
 
-            this._stop = false;
             var tick = function tick() {
-                if (_this._stop) return;
                 _this._step();
-                raf(tick);
+                _this._loop = raf(tick);
             };
-            raf(tick);
-        }
-    }, {
-        key: 'pauseResume',
-        value: function pauseResume() {
-            var _this2 = this;
-
-            this._stop = !this._stop;
-            if (!this._stop) setTimeout(function () {
-                return _this2.start();
-            }, 100);
+            this._loop = raf(tick);
         }
     }, {
         key: 'stop',
         value: function stop() {
-            this._stop = true;
+            debug('stop');
+            raf.cancel(this._loop);
         }
     }, {
         key: '_step',
@@ -592,32 +583,36 @@ var Gameboy = function () {
         // Use Bootstrap
 
         this._useBios = bios && bios.length > 0;
+
+        // Gameloop
+
+        this._isRunning = true;
     }
 
     _createClass(Gameboy, [{
         key: 'loadCart',
         value: function loadCart(rom) {
+            this._isRunning = false;
             this._cpu.stop();
             this._mmu.loadCart(rom);
         }
     }, {
         key: 'start',
         value: function start() {
-            var _this = this;
-
+            this._isRunning = true;
             this._init();
-            setTimeout(function () {
-                return _this._cpu.start();
-            }, 100);
+            this._cpu.start();
         }
     }, {
-        key: 'pause',
-        value: function pause() {
-            this._cpu.pauseResume();
+        key: 'pauseResume',
+        value: function pauseResume() {
+            this._isRunning = !this._isRunning;
+            if (this._isRunning) this._cpu.start();else this._cpu.stop();
         }
     }, {
         key: 'reset',
         value: function reset() {
+            this._isRunning = false;
             this._cpu.stop();
             this.start();
         }
