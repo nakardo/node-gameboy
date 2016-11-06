@@ -1,6 +1,6 @@
 {
   "name": "node-gameboy",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A Gameboy emulator written in JavaScript",
   "main": "lib/gameboy.js",
   "scripts": {
@@ -58,7 +58,7 @@
     "url": "https://github.com/dmacosta/node-gameboy/issues"
   },
   "homepage": "https://github.com/dmacosta/node-gameboy#readme",
-  "engines" : {
-    "node" : ">=6"
+  "engines": {
+    "node": ">=6"
   }
 }
