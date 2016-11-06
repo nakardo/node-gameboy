@@ -25,8 +25,8 @@ function loadFile () {
 }
 
 inputAction.addEventListener('change', loadFile);
-pauseAction.addEventListener('click', function () { gameboy.pause() });
-resetAction.addEventListener('click', function () { gameboy.reset() });
+pauseAction.addEventListener('click', () => gameboy.pauseResume());
+resetAction.addEventListener('click', () => gameboy.reset());
 
 // Joypad
 
