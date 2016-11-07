@@ -911,8 +911,11 @@ var Gpu = function (_EventEmitter) {
             var height = this._lcdc & 4 ? 16 : 8;
             var count = 0;
 
-            for (var i = 0; i < 40; i++) {
-                var sprite = this._video.sprites[i];
+            var sprites = this._video.sprites.sort(function (a, b) {
+                return a[1] - b[1];
+            });
+            for (var i = sprites.length - 1; i > -1; i--) {
+                var sprite = sprites[i];
 
                 // Position
 
@@ -940,6 +943,8 @@ var Gpu = function (_EventEmitter) {
                 var py = yflip ? height - 1 - (line - sy) : line - sy;
 
                 for (var x = sx; x < sx + 8; x++) {
+                    if (x < 0) continue;
+
                     var data = this._video.tiles[n + (py >> 3 & 1)];
                     var color = data[py & 7][xflip ? 7 - (x - sx) : x - sx];
                     if (color == 0) continue;
