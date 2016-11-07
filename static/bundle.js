@@ -870,8 +870,8 @@ var Gpu = function (_EventEmitter) {
                 var row = (y & 0xff) >> 3;
 
                 var n = map[row * 32 + col];
-                var data = this._video.tiles[dataSelect ? n : 256 + n.signed()];
-                var shade = this._bgpal[data[y & 7][x & 7]];
+                var tile = this._video.tiles[dataSelect ? n : 256 + n.signed()];
+                var shade = this._bgpal[tile[y & 7][x & 7]];
 
                 var offset = (line * FRAME_WIDTH + i) * 4;
 
@@ -894,8 +894,8 @@ var Gpu = function (_EventEmitter) {
                 var row = y >> 3;
 
                 var n = map[row * 32 + col];
-                var data = this._video.tiles[dataSelect ? n : 256 + n.signed()];
-                var shade = this._bgpal[data[y & 7][x & 7]];
+                var tile = this._video.tiles[dataSelect ? n : 256 + n.signed()];
+                var shade = this._bgpal[tile[y & 7][x & 7]];
 
                 var offset = (line * FRAME_WIDTH + i) * 4;
 
@@ -934,6 +934,7 @@ var Gpu = function (_EventEmitter) {
 
                 var attrs = sprite[3];
 
+                var priority = attrs >> 7 & 1;
                 var yflip = attrs >> 6 & 1;
                 var xflip = attrs >> 5 & 1;
                 var palette = this._objpal[attrs >> 4 & 1];
@@ -941,22 +942,25 @@ var Gpu = function (_EventEmitter) {
                 // Draw
 
                 var py = yflip ? height - 1 - (line - sy) : line - sy;
+                var data = this._data;
 
                 for (var x = sx; x < sx + 8; x++) {
                     if (x < 0) continue;
 
-                    var data = this._video.tiles[n + (py >> 3 & 1)];
-                    var color = data[py & 7][xflip ? 7 - (x - sx) : x - sx];
+                    var offset = (line * FRAME_WIDTH + x) * 4;
+
+                    if (priority && data[offset + 0] != 255 && data[offset + 1] != 255 && data[offset + 2] != 255) continue;
+
+                    var tile = this._video.tiles[n + (py >> 3 & 1)];
+                    var color = tile[py & 7][xflip ? 7 - (x - sx) : x - sx];
                     if (color == 0) continue;
 
                     var shade = palette[color];
 
-                    var offset = (line * FRAME_WIDTH + x) * 4;
-
-                    this._data[offset] = shade[0];
-                    this._data[++offset] = shade[1];
-                    this._data[++offset] = shade[2];
-                    this._data[++offset] = 255;
+                    data[offset + 0] = shade[0];
+                    data[offset + 1] = shade[1];
+                    data[offset + 2] = shade[2];
+                    data[offset + 3] = 255;
                 }
             };
         }
