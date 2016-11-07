@@ -11,7 +11,7 @@ may happen. Emulator can be run either on web browsers or server side.
 
 ## Online Build
 
-http://nakardo.github.io/node-gameboy/
+http://nakardo.github.io/node-gameboy
 
 ### Controllers
 
