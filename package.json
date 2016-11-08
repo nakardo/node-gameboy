@@ -33,7 +33,7 @@
   },
   "browser": {
     "canvas": false,
-    "debug": "./lib/debug.js"
+    "debug": "./lib/stubs/debug.js"
   },
   "dependencies": {
     "canvas": "^1.4.0",
