@@ -699,14 +699,14 @@ var EventEmitter = require('events').EventEmitter;
 var Canvas = require('./canvas');
 
 var _require = require('./registers'),
-    LCDCONT = _require.LCDCONT,
-    SCROLLY = _require.SCROLLY,
-    SCROLLX = _require.SCROLLX,
-    WNDPOSY = _require.WNDPOSY,
-    WNDPOSX = _require.WNDPOSX,
-    BGRDPAL = _require.BGRDPAL,
-    OBJ0PAL = _require.OBJ0PAL,
-    OBJ1PAL = _require.OBJ1PAL;
+    LCDC = _require.LCDC,
+    SCY = _require.SCY,
+    SCX = _require.SCX,
+    WY = _require.WY,
+    WX = _require.WX,
+    BGP = _require.BGP,
+    OBP0 = _require.OBP0,
+    OBP1 = _require.OBP1;
 
 require('./number');
 
@@ -761,21 +761,21 @@ var Gpu = function (_EventEmitter) {
         key: 'readByte',
         value: function readByte(addr) {
             switch (addr) {
-                case LCDCONT:
+                case LCDC:
                     return this._lcdc;
-                case SCROLLY:
+                case SCY:
                     return this._scy;
-                case SCROLLX:
+                case SCX:
                     return this._scx;
-                case BGRDPAL:
+                case BGP:
                     return this._bgp;
-                case OBJ0PAL:
+                case OBP0:
                     return this._obp0;
-                case OBJ1PAL:
+                case OBP1:
                     return this._obp1;
-                case WNDPOSY:
+                case WY:
                     return this._wy;
-                case WNDPOSX:
+                case WX:
                     return this._wx;
             }
 
@@ -785,24 +785,24 @@ var Gpu = function (_EventEmitter) {
         key: 'writeByte',
         value: function writeByte(addr, val) {
             switch (addr) {
-                case LCDCONT:
+                case LCDC:
                     return this._lcdc = val;
-                case SCROLLY:
+                case SCY:
                     return this._scy = val;
-                case SCROLLX:
+                case SCX:
                     return this._scx = val;
-                case BGRDPAL:
+                case BGP:
                     this._bgpal = this._createPalette(val);
                     return this._bgp = val;
-                case OBJ0PAL:
+                case OBP0:
                     this._objpal[0] = this._createPalette(val);
                     return this._obp0 = val;
-                case OBJ1PAL:
+                case OBP1:
                     this._objpal[1] = this._createPalette(val);
                     return this._obp1 = val;
-                case WNDPOSY:
+                case WY:
                     return this._wy = val;
-                case WNDPOSX:
+                case WX:
                     return this._wx = val;
             }
 
@@ -1038,7 +1038,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 var debug = require('debug')('joypad');
 
 var _require = require('./registers'),
-    JOYPAD = _require.JOYPAD;
+    JOYP = _require.JOYP;
 
 var _require2 = require('./interrupts'),
     INT_60 = _require2.INT_60;
@@ -1075,7 +1075,7 @@ var Joypad = function () {
     }, {
         key: 'readByte',
         value: function readByte(addr) {
-            if (addr == JOYPAD) {
+            if (addr == JOYP) {
                 return this._joyp[this._select];
             }
 
@@ -1084,7 +1084,7 @@ var Joypad = function () {
     }, {
         key: 'writeByte',
         value: function writeByte(addr, val) {
-            if (addr == JOYPAD) {
+            if (addr == JOYP) {
                 switch (val & 0x30) {
                     case 0x10:
                         this._select = 0;break; // button keys
@@ -1130,9 +1130,9 @@ var _step = require('debug')('lcd:step');
 var stat = require('debug')('lcd:stat');
 
 var _require = require('./registers'),
-    LCDSTAT = _require.LCDSTAT,
-    CURLINE = _require.CURLINE,
-    CMPLINE = _require.CMPLINE;
+    STAT = _require.STAT,
+    LY = _require.LY,
+    LYC = _require.LYC;
 
 var _require2 = require('./interrupts'),
     INT_40 = _require2.INT_40,
@@ -1236,11 +1236,11 @@ var Lcd = function () {
         key: 'readByte',
         value: function readByte(addr) {
             switch (addr) {
-                case LCDSTAT:
+                case STAT:
                     return this._stat;
-                case CURLINE:
+                case LY:
                     return this._ly;
-                case CMPLINE:
+                case LYC:
                     return this._lyc;
             }
 
@@ -1250,11 +1250,11 @@ var Lcd = function () {
         key: 'writeByte',
         value: function writeByte(addr, val) {
             switch (addr) {
-                case LCDSTAT:
+                case STAT:
                     return this._stat |= val & 0x78;
-                case CURLINE:
+                case LY:
                     return this._ly = 0;
-                case CMPLINE:
+                case LYC:
                     return this._lyc = val;
             }
 
@@ -4549,7 +4549,7 @@ $[0xd9] = ['RETI', function (cpu, mmu) {
 'use strict';
 
 /**
- * FF00 - JOYPAD - Joypad (R/W)
+ * FF00 - JOYP - Joypad (R/W)
  *
  * The eight gameboy buttons/direction keys are arranged in form of a 2x4
  * matrix. Select either button or direction keys by writing to this
@@ -4565,10 +4565,10 @@ $[0xd9] = ['RETI', function (cpu, mmu) {
  * Bit 0 - P10 Input Right or Button A (0=Pressed) (Read Only)
  */
 
-exports.JOYPAD = 0xff00;
+exports.JOYP = 0xff00;
 
 /**
- * FF04 - DIVIDER - Divider Register (R/W)
+ * FF04 - DIV - Divider Register (R/W)
  *
  * This register is incremented at rate of 16384Hz (~16779Hz on SGB).
  * Writing any value to this register resets it to 00h.
@@ -4576,27 +4576,27 @@ exports.JOYPAD = 0xff00;
  * Note: The divider is affected by CGB double speed mode, and will
  * increment at 32768Hz in double speed.
  */
-exports.DIVIDER = 0xff04;
+exports.DIV = 0xff04;
 
 /**
- * FF05 - TIMECNT - Timer counter (R/W)
+ * FF05 - TIMA - Timer counter (R/W)
  *
  * This timer is incremented by a clock frequency specified by the TAC
  * register ($FF07). When the value overflows (gets bigger than FFh)
  * then it will be reset to the value specified in TMA (FF06), and an
  * interrupt will be requested, as described below.
  */
-exports.TIMECNT = 0xff05;
+exports.TIMA = 0xff05;
 
 /**
- * FF06 - TIMEMOD - Timer Modulo (R/W)
+ * FF06 - TMA - Timer Modulo (R/W)
  *
  * When the TIMA overflows, this data will be loaded.
  */
-exports.TIMEMOD = 0xff06;
+exports.TMA = 0xff06;
 
 /**
- * FF07 - TIMCONT - Timer Control (R/W)
+ * FF07 - TAC - Timer Control (R/W)
  *
  * Bit 2    - Timer Enable
  * Bits 1-0 - Input Clock Select
@@ -4608,7 +4608,7 @@ exports.TIMEMOD = 0xff06;
  * Note: The "Timer Enable" bit only affects the timer, the divider is
  * ALWAYS counting.
  */
-exports.TIMCONT = 0xff07;
+exports.TAC = 0xff07;
 
 /**
  * FF0F - IF - Interrupt Flag (R/W)
@@ -4622,7 +4622,7 @@ exports.TIMCONT = 0xff07;
 exports.IF = 0xff0f;
 
 /**
- * FF40 - LCDCONT - LCD Control (R/W)
+ * FF40 - LCDC - LCD Control (R/W)
  *
  * Bit 7 - LCD Display Enable             (0=Off, 1=On)
  * Bit 6 - Window Tile Map Display Select (0=9800-9BFF, 1=9C00-9FFF)
@@ -4633,10 +4633,10 @@ exports.IF = 0xff0f;
  * Bit 1 - OBJ (Sprite) Display Enable    (0=Off, 1=On)
  * Bit 0 - BG Display (for CGB see below) (0=Off, 1=On)
  */
-exports.LCDCONT = 0xff40;
+exports.LCDC = 0xff40;
 
 /**
- * FF41 - LCDSTAT - LCDC Status (R/W)
+ * FF41 - STAT - LCDC Status (R/W)
  *
  * Bit 6 - LYC=LY Coincidence Interrupt (1=Enable) (Read/Write)
  * Bit 5 - Mode 2 OAM Interrupt         (1=Enable) (Read/Write)
@@ -4649,11 +4649,11 @@ exports.LCDCONT = 0xff40;
  *           2: During Searching OAM-RAM
  *           3: During Transfering Data to LCD Driver
  */
-exports.LCDSTAT = 0xff41;
+exports.STAT = 0xff41;
 
 /**
- * FF42 - SCROLLY - Scroll Y (R/W)
- * FF43 - SCROLLX - Scroll X (R/W)
+ * FF42 - SCY - Scroll Y (R/W)
+ * FF43 - SCX - Scroll X (R/W)
  *
  * Specifies the position in the 256x256 pixels BG map (32x32 tiles) which
  * is to be displayed at the upper/left LCD display position.
@@ -4662,30 +4662,30 @@ exports.LCDSTAT = 0xff41;
  * controller automatically wraps back to the upper (left) position in BG
  * map when drawing exceeds the lower (right) border of the BG map area.
  */
-exports.SCROLLY = 0xff42;
-exports.SCROLLX = 0xff43;
+exports.SCY = 0xff42;
+exports.SCX = 0xff43;
 
 /**
- * FF44 - CURLINE - LCDC Y-Coordinate (R)
+ * FF44 - LY - LCDC Y-Coordinate (R)
  *
  * The LY indicates the vertical line to which the present data is
  * transferred to the LCD Driver. The LY can take on any value between 0
  * through 153. The values between 144 and 153 indicate the V-Blank period.
  * Writing will reset the counter.
  */
-exports.CURLINE = 0xff44;
+exports.LY = 0xff44;
 
 /**
- * FF45 - CMPLINE - LY Compare (R/W)
+ * FF45 - LYC - LY Compare (R/W)
  *
  * The gameboy permanently compares the value of the LYC and LY registers.
  * When both values are identical, the coincident bit in the STAT register
  * becomes set, and (if enabled) a STAT interrupt is requested.
  */
-exports.CMPLINE = 0xff45;
+exports.LYC = 0xff45;
 
 /**
- * FF46 - DMACONT - DMA Transfer and Start Address (W)
+ * FF46 - DMA - DMA Transfer and Start Address (W)
  *
  * Writing to this register launches a DMA transfer from ROM or RAM to OAM
  * memory (sprite attribute table). The written value specifies the transfer
@@ -4694,10 +4694,10 @@ exports.CMPLINE = 0xff45;
  * Source:      XX00-XX9F   ;XX in range from 00-F1h
  * Destination: FE00-FE9F
  */
-exports.DMACONT = 0xff46;
+exports.DMA = 0xff46;
 
 /**
- * FF47 - BGRDPAL - BG Palette Data (R/W) - Non CGB Mode Only
+ * FF47 - BGP - BG Palette Data (R/W) - Non CGB Mode Only
  *
  * This register assigns gray shades to the color numbers of the BG and
  * Window tiles.
@@ -4715,29 +4715,29 @@ exports.DMACONT = 0xff46;
  *
  * In CGB Mode the Color Palettes are taken from CGB Palette Memory instead.
  */
-exports.BGRDPAL = 0xff47;
+exports.BGP = 0xff47;
 
 /**
- * FF48 - OBJ0PAL - Object Palette 0 Data (R/W) - Non CGB Mode Only
+ * FF48 - OBP0 - Object Palette 0 Data (R/W) - Non CGB Mode Only
  *
  * This register assigns gray shades for sprite palette 0. It works exactly as
  * BGP (FF47), except that the lower two bits aren't used because sprite data
  * 00 is transparent.
  */
-exports.OBJ0PAL = 0xff48;
+exports.OBP0 = 0xff48;
 
 /**
- * FF49 - OBJ1PAL - Object Palette 1 Data (R/W) - Non CGB Mode Only
+ * FF49 - OBP1 - Object Palette 1 Data (R/W) - Non CGB Mode Only
  *
  * This register assigns gray shades for sprite palette 1. It works exactly as
  * BGP (FF47), except that the lower two bits aren't used because sprite data
  * 00 is transparent.
  */
-exports.OBJ1PAL = 0xff49;
+exports.OBP1 = 0xff49;
 
 /**
- * FF4A - WNDPOSY - Window Y Position (R/W)
- * FF4B - WNDPOSX - Window X Position minus 7 (R/W)
+ * FF4A - WY - Window Y Position (R/W)
+ * FF4B - WX - Window X Position minus 7 (R/W)
  *
  * Specifies the upper/left positions of the Window area. (The window is an
  * alternate background area which can be displayed above of the normal
@@ -4747,8 +4747,8 @@ exports.OBJ1PAL = 0xff49;
  * WX=0..166, WY=0..143. A postion of WX=7, WY=0 locates the window at upper
  * left, it is then completly covering normal background.
  */
-exports.WNDPOSY = 0xff4a;
-exports.WNDPOSX = 0xff4b;
+exports.WY = 0xff4a;
+exports.WX = 0xff4b;
 
 /**
  * FFFF - IE - Interrupt Enable (R/W)
@@ -4773,10 +4773,10 @@ var divider = require('debug')('timer:divider');
 var counter = require('debug')('timer:counter');
 
 var _require = require('./registers'),
-    DIVIDER = _require.DIVIDER,
-    TIMECNT = _require.TIMECNT,
-    TIMEMOD = _require.TIMEMOD,
-    TIMCONT = _require.TIMCONT;
+    DIV = _require.DIV,
+    TIMA = _require.TIMA,
+    TMA = _require.TMA,
+    TAC = _require.TAC;
 
 var _require2 = require('./interrupts'),
     INT_50 = _require2.INT_50;
@@ -4858,13 +4858,13 @@ var Timer = function () {
         key: 'readByte',
         value: function readByte(addr) {
             switch (addr) {
-                case DIVIDER:
+                case DIV:
                     return this._div;
-                case TIMECNT:
+                case TIMA:
                     return this._tima;
-                case TIMEMOD:
+                case TMA:
                     return this._tma;
-                case TIMCONT:
+                case TAC:
                     return this._tac;
             }
 
@@ -4874,13 +4874,13 @@ var Timer = function () {
         key: 'writeByte',
         value: function writeByte(addr, val) {
             switch (addr) {
-                case DIVIDER:
+                case DIV:
                     return this._div = 0;
-                case TIMECNT:
+                case TIMA:
                     return this._tima = val;
-                case TIMEMOD:
+                case TMA:
                     return this._tma = val;
-                case TIMCONT:
+                case TAC:
                     return this._tac = val;
             }
 

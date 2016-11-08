@@ -4,9 +4,10 @@
   "description": "A Gameboy emulator written in JavaScript",
   "main": "lib/gameboy.js",
   "scripts": {
-    "build": "browserify example/web.js -o static/bundle.js",
-    "build-min": "browserify example/web.js | uglifyjs -cm > static/bundle.min.js",
-    "watch": "watchify example/web.js -o static/bundle.js"
+    "build": "browserify examples/web.js -o dist/bundle.js",
+    "build-min": "browserify examples/web.js | uglifyjs -cm > dist/bundle.min.js",
+    "build-all": "npm run build && npm run build-min",
+    "watch": "watchify examples/web.js -o dist/bundle.js"
   },
   "keywords": [
     "gameboy",
@@ -49,9 +50,6 @@
     "uglify-js": "^2.7.4",
     "watchify": "^3.7.0"
   },
-  "directories": {
-    "example": "example"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/dmacosta/node-gameboy.git"
@@ -62,5 +60,8 @@
   "homepage": "https://github.com/dmacosta/node-gameboy#readme",
   "engines": {
     "node": ">=6"
+  },
+  "directories": {
+    "example": "examples"
   }
 }

@@ -45,4 +45,4 @@ http://nakardo.github.io/node-gameboy
 
 ## Usage
 
-See [examples](https://github.com/dmacosta/node-gameboy/tree/master/example).
+See [examples](https://github.com/dmacosta/node-gameboy/tree/master/examples).
