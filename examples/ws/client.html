@@ -29,10 +29,10 @@
 
         var socket = io('http://127.0.0.1:3000');
 
+        // From: https://github.com/rauchg/weplay-web/blob/master/client/app.js
+
         var image = new Image;
         var lastImage;
-
-        // From: https://github.com/rauchg/weplay-web/blob/master/client/app.js
 
         socket.on('frame', function (data) {
             if (lastImage && 'undefined' != typeof URL) {
