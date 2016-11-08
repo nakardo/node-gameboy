@@ -7,7 +7,8 @@
     "build": "browserify examples/web.js -o dist/bundle.js",
     "build-min": "browserify examples/web.js | uglifyjs -cm > dist/bundle.min.js",
     "build-all": "npm run build && npm run build-min",
-    "watch": "watchify examples/web.js -o dist/bundle.js"
+    "watch": "watchify examples/web.js -o dist/bundle.js",
+    "prepublish": "npm run build"
   },
   "keywords": [
     "gameboy",
