@@ -14,8 +14,8 @@
     "gameboy",
     "nintendo",
     "emulator",
-    "console",
-    "handheld"
+    "game",
+    "console"
   ],
   "author": "Diego Acosta <diegonake@gmail.com>",
   "license": "MIT",
