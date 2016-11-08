@@ -50,208 +50,7 @@ gameboy.gpu.on('frame', function (offcanvas) {
     ctx.drawImage(offcanvas, 0, 0);
 });
 
-},{"../":6}],2:[function(require,module,exports){
-'use strict';
-
-function Canvas() {
-    var width = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 160;
-    var height = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 144;
-
-    if (typeof window !== 'undefined') {
-        var canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-
-        return canvas;
-    }
-
-    return new (require('canvas'))(width, height);
-}
-
-module.exports = Canvas;
-
-},{"canvas":17}],3:[function(require,module,exports){
-'use strict';
-
-/**
- * 0147 - Cartridge Type
- *
- * Specifies which Memory Bank Controller (if any) is used in the cartridge,
- * and if further external hardware exists in the cartridge.
- *
- * 00h  ROM ONLY                 13h  MBC3+RAM+BATTERY
- * 01h  MBC1                     15h  MBC4
- * 02h  MBC1+RAM                 16h  MBC4+RAM
- * 03h  MBC1+RAM+BATTERY         17h  MBC4+RAM+BATTERY
- * 05h  MBC2                     19h  MBC5
- * 06h  MBC2+BATTERY             1Ah  MBC5+RAM
- * 08h  ROM+RAM                  1Bh  MBC5+RAM+BATTERY
- * 09h  ROM+RAM+BATTERY          1Ch  MBC5+RUMBLE
- * 0Bh  MMM01                    1Dh  MBC5+RUMBLE+RAM
- * 0Ch  MMM01+RAM                1Eh  MBC5+RUMBLE+RAM+BATTERY
- * 0Dh  MMM01+RAM+BATTERY        FCh  POCKET CAMERA
- * 0Fh  MBC3+TIMER+BATTERY       FDh  BANDAI TAMA5
- * 10h  MBC3+TIMER+RAM+BATTERY   FEh  HuC3
- * 11h  MBC3
- */
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var CART_TYPE = [];
-
-CART_TYPE[0x00] = 'ROM ONLY';
-CART_TYPE[0x01] = 'MBC1';
-CART_TYPE[0x02] = 'MBC1+RAM';
-CART_TYPE[0x03] = 'MBC1+RAM+BATTERY';
-CART_TYPE[0x05] = 'MBC2';
-CART_TYPE[0x06] = 'MBC2+BATTERY';
-
-/**
- * 0148 - ROM Size
- *
- * Specifies the ROM Size of the cartridge. Typically calculated as
- * "32KB shl N".
- *
- * 00h -  32KByte (no ROM banking)
- * 01h -  64KByte (4 banks)
- * 02h - 128KByte (8 banks)
- * 03h - 256KByte (16 banks)
- * 04h - 512KByte (32 banks)
- * 05h -   1MByte (64 banks)  - only 63 banks used by MBC1
- * 06h -   2MByte (128 banks) - only 125 banks used by MBC1
- * 07h -   4MByte (256 banks)
- * 52h - 1.1MByte (72 banks)
- * 53h - 1.2MByte (80 banks)
- * 54h - 1.5MByte (96 banks)
- */
-
-var ROM_SIZE = [];
-
-ROM_SIZE[0x00] = 1;
-ROM_SIZE[0x01] = 2;
-ROM_SIZE[0x02] = 4;
-ROM_SIZE[0x03] = 8;
-ROM_SIZE[0x04] = 16;
-
-/**
- * 0149 - RAM Size
- *
- * Specifies the size of the external RAM in the cartridge (if any).
- *
- * 00h - None
- * 01h - 2 KBytes
- * 02h - 8 Kbytes
- * 03h - 32 KBytes (4 banks of 8KBytes each)
- *
- * When using a MBC2 chip 00h must be specified in this entry, even though the
- * MBC2 includes a built-in RAM of 512 x 4 bits
- */
-
-var RAM_SIZE = [];
-
-RAM_SIZE[0x00] = 0;
-RAM_SIZE[0x01] = 2;
-RAM_SIZE[0x02] = 8;
-RAM_SIZE[0x03] = 32;
-
-var Cart = function () {
-    function Cart(rom) {
-        _classCallCheck(this, Cart);
-
-        var cart = new Uint8Array(rom);
-
-        // Cartridge Header
-
-        this._title = this._sliceToString(cart, 0x0134, 0x0143);
-        this._type = cart[0x0147];
-        this._romSize = cart[0x0148];
-        this._ramSize = cart[0x0149];
-
-        // Memory Map
-
-        this._rom = new Uint8Array(cart, 0, 0x8000 * ROM_SIZE[this._romSize]);
-        this._ram = new Uint8Array(0x800 * RAM_SIZE[this._ramSize]);
-
-        // MBC
-
-        this._romBank = 1;
-        this._ramBank = 0;
-        this._ramEnabled = false;
-        this._mode = 0;
-    }
-
-    _createClass(Cart, [{
-        key: 'readByte',
-        value: function readByte(addr) {
-            switch (addr >> 12) {
-                case 0x0:case 0x1:
-                case 0x2:case 0x3:
-                    return this._rom[addr];
-                case 0x4:case 0x5:
-                case 0x6:case 0x7:
-                    {
-                        var pos = addr & 0x3fff;
-                        return this._rom[0x4000 * this._romBank + pos];
-                    }
-                case 0xa:case 0xb:
-                    {
-                        var _pos = addr & 0x1fff;
-                        return this._ram[0x2000 * this._ramBank + _pos];
-                    }
-            }
-
-            throw new Error('unmapped address 0x' + addr.toString(16));
-        }
-    }, {
-        key: 'writeByte',
-        value: function writeByte(addr, val) {
-            switch (addr >> 12) {
-                case 0x0:case 0x1:
-                    return this._ramEnabled = (val & 0xf) == 0xa;
-                case 0x2:case 0x3:
-                    val &= 0x1f;
-                    return this._romBank = (val & 0xf) == 0 ? val++ : val;
-                case 0x4:case 0x5:
-                    val &= 3;
-                    if (this._mode == 1) return this._ramBank = val;
-                    return this._romBank |= val << 5;
-                case 0x6:case 0x7:
-                    return this._mode = val & 1;
-                case 0xa:case 0xb:
-                    if (!this._ramEnabled) return;
-                    var pos = addr & 0x1fff;
-                    return this._ram[0x2000 * this._ramBank + pos] = val;
-            }
-
-            throw new Error('unmapped address 0x' + addr.toString(16));
-        }
-    }, {
-        key: 'toJSON',
-        value: function toJSON() {
-            return {
-                title: this._title,
-                type: CART_TYPE[this._type],
-                romSize: this._romSize,
-                ramSize: this._ramSize
-            };
-        }
-    }, {
-        key: '_sliceToString',
-        value: function _sliceToString(data, begin, end) {
-            return String.fromCharCode.apply(String, _toConsumableArray(data.slice(begin, end))).replace(/\0/g, '');
-        }
-    }]);
-
-    return Cart;
-}();
-
-module.exports = Cart;
-
-},{}],4:[function(require,module,exports){
+},{"../":5}],2:[function(require,module,exports){
 'use strict';
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
@@ -260,13 +59,13 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var debug = require('debug')('cpu');
-var cycle = require('debug')('cpu:cycle');
-var int = require('debug')('cpu:int');
+var debug = require('debug')('gameboy:cpu');
+var cycle = require('debug')('gameboy:cpu:cycle');
+var int = require('debug')('gameboy:cpu:int');
 var raf = require('raf');
 var opcodes = require('./opcodes');
 
-var _require = require('./interrupts'),
+var _require = require('../interrupts'),
     INT_40 = _require.INT_40,
     INT_48 = _require.INT_48,
     INT_50 = _require.INT_50,
@@ -530,961 +329,10 @@ var Cpu = function () {
 
 module.exports = Cpu;
 
-},{"./interrupts":8,"./opcodes":13,"debug":5,"raf":21}],5:[function(require,module,exports){
-"use strict";
-
-module.exports = function () {
-  return function () {};
-};
-
-},{}],6:[function(require,module,exports){
+},{"../interrupts":9,"./opcodes":3,"debug":15,"raf":21}],3:[function(require,module,exports){
 'use strict';
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var Video = require('./video');
-var Timer = require('./timer');
-var Lcd = require('./lcd');
-var Mmu = require('./mmu');
-var Gpu = require('./gpu');
-var Cpu = require('./cpu');
-var Joypad = require('./joypad');
-
-var Gameboy = function () {
-    function Gameboy(bios) {
-        _classCallCheck(this, Gameboy);
-
-        var mmu = new Mmu(bios);
-
-        var video = new Video();
-        var gpu = new Gpu(video);
-        var timer = new Timer(mmu);
-        var lcd = new Lcd(mmu, gpu);
-        var cpu = new Cpu(mmu, gpu, timer, lcd);
-        var joypad = new Joypad(mmu);
-
-        this._timer = timer;
-        this._lcd = lcd;
-        this._mmu = mmu;
-        this._gpu = gpu;
-        this._cpu = cpu;
-        this._joypad = joypad;
-
-        // Mappings
-
-        mmu.video = video;
-        mmu.timer = timer;
-        mmu.lcd = lcd;
-        mmu.gpu = gpu;
-        mmu.joypad = joypad;
-
-        // Use Bootstrap
-
-        this._useBios = bios && bios.length > 0;
-
-        // Gameloop
-
-        this._isRunning = true;
-    }
-
-    _createClass(Gameboy, [{
-        key: 'loadCart',
-        value: function loadCart(rom) {
-            this._isRunning = false;
-            this._cpu.stop();
-            this._mmu.loadCart(rom);
-        }
-    }, {
-        key: 'start',
-        value: function start() {
-            this._isRunning = true;
-            this._init();
-            this._cpu.start();
-        }
-    }, {
-        key: 'pauseResume',
-        value: function pauseResume() {
-            this._isRunning = !this._isRunning;
-            if (this._isRunning) this._cpu.start();else this._cpu.stop();
-        }
-    }, {
-        key: 'reset',
-        value: function reset() {
-            this._isRunning = false;
-            this._cpu.stop();
-            this.start();
-        }
-    }, {
-        key: '_init',
-        value: function _init() {
-            this._timer.init();
-            this._lcd.init();
-            this._mmu.init();
-            this._cpu.init();
-
-            if (!this._useBios) {
-                this._cpu.pc = 0x100;
-                this._cpu.af = 0x1b0;
-                this._cpu.bc = 0x13;
-                this._cpu.de = 0xd8;
-                this._cpu.hl = 0x14d;
-                this._cpu.sp = 0xfffe;
-
-                this._mmu.writeByte(0xff05, 0x00); // TIMA
-                this._mmu.writeByte(0xff06, 0x00); // TMA
-                this._mmu.writeByte(0xff07, 0x00); // TAC
-                this._mmu.writeByte(0xff10, 0x80); // NR10
-                this._mmu.writeByte(0xff11, 0xbf); // NR11
-                this._mmu.writeByte(0xff12, 0xf3); // NR12
-                this._mmu.writeByte(0xff14, 0xbf); // NR14
-                this._mmu.writeByte(0xff16, 0x3f); // NR21
-                this._mmu.writeByte(0xff17, 0x00); // NR22
-                this._mmu.writeByte(0xff19, 0xbf); // NR24
-                this._mmu.writeByte(0xff1a, 0x7f); // NR30
-                this._mmu.writeByte(0xff1b, 0xff); // NR31
-                this._mmu.writeByte(0xff1c, 0x9f); // NR32
-                this._mmu.writeByte(0xff1e, 0xbf); // NR33
-                this._mmu.writeByte(0xff20, 0xff); // NR41
-                this._mmu.writeByte(0xff21, 0x00); // NR42
-                this._mmu.writeByte(0xff22, 0x00); // NR43
-                this._mmu.writeByte(0xff23, 0xbf); // NR30
-                this._mmu.writeByte(0xff24, 0x77); // NR50
-                this._mmu.writeByte(0xff25, 0xf3); // NR51
-                this._mmu.writeByte(0xff26, 0xf1); // NR52
-                this._mmu.writeByte(0xff40, 0x91); // LCDC
-                this._mmu.writeByte(0xff42, 0x00); // SCY
-                this._mmu.writeByte(0xff43, 0x00); // SCX
-                this._mmu.writeByte(0xff45, 0x00); // LYC
-                this._mmu.writeByte(0xff47, 0xfc); // BGP
-                this._mmu.writeByte(0xff48, 0xff); // OBP0
-                this._mmu.writeByte(0xff49, 0xff); // OBP1
-                this._mmu.writeByte(0xff4a, 0x00); // WY
-                this._mmu.writeByte(0xff4b, 0x00); // WX
-                this._mmu.writeByte(0xffff, 0x00); // IE
-            }
-        }
-    }, {
-        key: 'gpu',
-        get: function get() {
-            return this._gpu;
-        }
-    }, {
-        key: 'joypad',
-        get: function get() {
-            return this._joypad;
-        }
-    }]);
-
-    return Gameboy;
-}();
-
-module.exports = Gameboy;
-
-},{"./cpu":4,"./gpu":7,"./joypad":9,"./lcd":10,"./mmu":11,"./timer":15,"./video":16}],7:[function(require,module,exports){
-'use strict';
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var _render = require('debug')('gpu:render');
-var control = require('debug')('gpu:control');
-var EventEmitter = require('events').EventEmitter;
-var Canvas = require('./canvas');
-
-var _require = require('./registers'),
-    LCDC = _require.LCDC,
-    SCY = _require.SCY,
-    SCX = _require.SCX,
-    WY = _require.WY,
-    WX = _require.WX,
-    BGP = _require.BGP,
-    OBP0 = _require.OBP0,
-    OBP1 = _require.OBP1;
-
-require('./number');
-
-// Non CGB gray shades
-
-var GRAY_SHADES = [];
-
-GRAY_SHADES[0] = [255, 255, 255];
-GRAY_SHADES[1] = [192, 192, 192];
-GRAY_SHADES[2] = [96, 96, 96];
-GRAY_SHADES[3] = [0, 0, 0];
-
-var FRAME_WIDTH = 160;
-var FRAME_HEIGHT = 144;
-
-var Gpu = function (_EventEmitter) {
-    _inherits(Gpu, _EventEmitter);
-
-    function Gpu(video) {
-        _classCallCheck(this, Gpu);
-
-        var _this = _possibleConstructorReturn(this, (Gpu.__proto__ || Object.getPrototypeOf(Gpu)).call(this));
-
-        _this._video = video;
-
-        // Registers
-
-        _this._lcdc = 0;
-        _this._scy = 0;
-        _this._scx = 0;
-        _this._wy = 0;
-        _this._wx = 0;
-        _this._bgp = 0;
-        _this._obp0 = 0;
-        _this._obp1 = 0;
-
-        // Display
-
-        _this._bgpal = null;
-        _this._objpal = [];
-
-        // Canvas
-
-        _this._canvas = new Canvas(FRAME_WIDTH, FRAME_HEIGHT);
-        _this._ctx = _this._canvas.getContext('2d');
-        _this._image = _this._ctx.getImageData(0, 0, FRAME_WIDTH, FRAME_HEIGHT);
-        _this._data = _this._image.data;
-        return _this;
-    }
-
-    _createClass(Gpu, [{
-        key: 'readByte',
-        value: function readByte(addr) {
-            switch (addr) {
-                case LCDC:
-                    return this._lcdc;
-                case SCY:
-                    return this._scy;
-                case SCX:
-                    return this._scx;
-                case BGP:
-                    return this._bgp;
-                case OBP0:
-                    return this._obp0;
-                case OBP1:
-                    return this._obp1;
-                case WY:
-                    return this._wy;
-                case WX:
-                    return this._wx;
-            }
-
-            throw new Error('unmapped address 0x' + addr.toString(16));
-        }
-    }, {
-        key: 'writeByte',
-        value: function writeByte(addr, val) {
-            switch (addr) {
-                case LCDC:
-                    return this._lcdc = val;
-                case SCY:
-                    return this._scy = val;
-                case SCX:
-                    return this._scx = val;
-                case BGP:
-                    this._bgpal = this._createPalette(val);
-                    return this._bgp = val;
-                case OBP0:
-                    this._objpal[0] = this._createPalette(val);
-                    return this._obp0 = val;
-                case OBP1:
-                    this._objpal[1] = this._createPalette(val);
-                    return this._obp1 = val;
-                case WY:
-                    return this._wy = val;
-                case WX:
-                    return this._wx = val;
-            }
-
-            throw new Error('unmapped address 0x' + addr.toString(16));
-        }
-    }, {
-        key: 'drawLine',
-        value: function drawLine(line) {
-            var data = this._lcdc >> 4 & 1;
-
-            // Background
-
-            if (this._lcdc & 1) {
-                var map = this._lcdc >> 3 & 1;
-                this._drawBackground(line, this._scx, this._scy, map, data);
-            }
-
-            // Window
-
-            if (this._lcdc & 0x20 && line >= this._wy) {
-                var _map = this._lcdc >> 6 & 1;
-                this._drawWindow(line, this._wx - 7, this._wy, _map, data);
-            }
-
-            // Sprites
-
-            if (this._lcdc & 2) {
-                this._drawSprites(line);
-            }
-        }
-    }, {
-        key: 'render',
-        value: function render() {
-            _render('frame');
-
-            // LCD Display Enable
-
-            control('%s', this._lcdc.toString(2));
-
-            if (this._lcdc & 0x80 == 0) {
-                this._ctx.fillStyle = 'white';
-                this._ctx.fillRect(0, 0, FRAME_WIDTH, FRAME_HEIGHT);
-            }
-
-            this._ctx.putImageData(this._image, 0, 0);
-            this._ctx.drawImage(this._canvas, 0, 0);
-
-            this.emit('frame', this._canvas);
-        }
-    }, {
-        key: '_createPalette',
-        value: function _createPalette(palette) {
-            return [GRAY_SHADES[palette & 3], GRAY_SHADES[palette >> 2 & 3], GRAY_SHADES[palette >> 4 & 3], GRAY_SHADES[palette >> 6 & 3]];
-        }
-    }, {
-        key: '_drawBackground',
-        value: function _drawBackground(line, offsetX, offsetY, mapSelect, dataSelect) {
-            var map = this._video.bgMap[mapSelect];
-            var y = offsetY + line;
-
-            for (var i = 0; i < FRAME_WIDTH; i++) {
-                var x = offsetX + i;
-
-                var col = (x & 0xff) >> 3;
-                var row = (y & 0xff) >> 3;
-
-                var n = map[row * 32 + col];
-                var tile = this._video.tiles[dataSelect ? n : 256 + n.signed()];
-                var shade = this._bgpal[tile[y & 7][x & 7]];
-
-                var offset = (line * FRAME_WIDTH + i) * 4;
-
-                this._data[offset] = shade[0];
-                this._data[++offset] = shade[1];
-                this._data[++offset] = shade[2];
-                this._data[++offset] = 255;
-            }
-        }
-    }, {
-        key: '_drawWindow',
-        value: function _drawWindow(line, posX, posY, mapSelect, dataSelect) {
-            var map = this._video.bgMap[mapSelect];
-            var y = line - posY;
-
-            for (var i = posX; i < FRAME_WIDTH; i++) {
-                var x = i - posX;
-
-                var col = x >> 3;
-                var row = y >> 3;
-
-                var n = map[row * 32 + col];
-                var tile = this._video.tiles[dataSelect ? n : 256 + n.signed()];
-                var shade = this._bgpal[tile[y & 7][x & 7]];
-
-                var offset = (line * FRAME_WIDTH + i) * 4;
-
-                this._data[offset] = shade[0];
-                this._data[++offset] = shade[1];
-                this._data[++offset] = shade[2];
-                this._data[++offset] = 255;
-            }
-        }
-    }, {
-        key: '_drawSprites',
-        value: function _drawSprites(line) {
-            var height = this._lcdc & 4 ? 16 : 8;
-            var count = 0;
-
-            var sprites = this._video.sprites.sort(function (a, b) {
-                return a[1] - b[1];
-            });
-            for (var i = sprites.length - 1; i > -1; i--) {
-                var sprite = sprites[i];
-
-                // Position
-
-                var sy = sprite[0] - 16;
-                var sx = sprite[1] - 8;
-
-                if (!(line >= sy && line < sy + height)) continue;
-                if (sx >= FRAME_WIDTH || sy >= FRAME_HEIGHT) continue;
-                if (++count > 10) continue;
-
-                // Tile/Pattern Number
-
-                var n = this._lcdc & 4 ? sprite[2] & 0xfe : sprite[2];
-
-                // Attributes/Flags
-
-                var attrs = sprite[3];
-
-                var priority = attrs >> 7 & 1;
-                var yflip = attrs >> 6 & 1;
-                var xflip = attrs >> 5 & 1;
-                var palette = this._objpal[attrs >> 4 & 1];
-
-                // Draw
-
-                var py = yflip ? height - 1 - (line - sy) : line - sy;
-                var data = this._data;
-
-                for (var x = sx; x < sx + 8; x++) {
-                    if (x < 0) continue;
-
-                    var offset = (line * FRAME_WIDTH + x) * 4;
-
-                    if (priority && data[offset + 0] != 255 && data[offset + 1] != 255 && data[offset + 2] != 255) continue;
-
-                    var tile = this._video.tiles[n + (py >> 3 & 1)];
-                    var color = tile[py & 7][xflip ? 7 - (x - sx) : x - sx];
-                    if (color == 0) continue;
-
-                    var shade = palette[color];
-
-                    data[offset + 0] = shade[0];
-                    data[offset + 1] = shade[1];
-                    data[offset + 2] = shade[2];
-                    data[offset + 3] = 255;
-                }
-            };
-        }
-    }]);
-
-    return Gpu;
-}(EventEmitter);
-
-module.exports = Gpu;
-
-},{"./canvas":2,"./number":12,"./registers":14,"debug":5,"events":18}],8:[function(require,module,exports){
-'use strict';
-
-/**
- * INT 40 - V-Blank Interrupt
- *
- * The V-Blank interrupt occurs ca. 59.7 times a second on a regular GB and ca.
- * 61.1 times a second on a Super GB (SGB). This interrupt occurs at the
- * beginning of the V-Blank period (LY=144).
- * During this period video hardware is not using video ram so it may be freely
- * accessed. This period lasts approximately 1.1 milliseconds.
- */
-
-exports.INT_40 = 1;
-
-/**
- * INT 48 - LCDC Status Interrupt
- *
- * There are various reasons for this interrupt to occur as described by the
- * STAT register ($FF40). One very popular reason is to indicate to the user
- * when the video hardware is about to redraw a given LCD line. This can be
- * useful for dynamically controlling the SCX/SCY registers ($FF43/$FF42) to
- * perform special video effects.
- */
-exports.INT_48 = 1 << 1;
-
-/**
- * INT 50 - Timer Interrupt
- *
- * Each time when the timer overflows (ie. when TIMA gets bigger than FFh), then
- * an interrupt is requested by setting Bit 2 in the IF Register (FF0F). When
- * that interrupt is enabled, then the CPU will execute it by calling the timer
- * interrupt vector at 0050h.
- */
-exports.INT_50 = 1 << 2;
-
-/**
- * INT 58 - Serial Interrupt
- *
- * When the transfer has completed (ie. after sending/receiving 8 bits, if any)
- * then an interrupt is requested by setting Bit 3 of the IF Register (FF0F).
- * When that interrupt is enabled, then the Serial Interrupt vector at 0058 is
- * called.
- */
-exports.INT_58 = 1 << 3;
-
-/**
- * INT 60 - Joypad Interrupt
- *
- * Joypad interrupt is requested when any of the above Input lines changes from
- * High to Low. Generally this should happen when a key becomes pressed
- * (provided that the button/direction key is enabled by above Bit4/5), however,
- * because of switch bounce, one or more High to Low transitions are usually
- * produced both when pressing or releasing a key.
- */
-exports.INT_60 = 1 << 4;
-
-},{}],9:[function(require,module,exports){
-'use strict';
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var debug = require('debug')('joypad');
-
-var _require = require('./registers'),
-    JOYP = _require.JOYP;
-
-var _require2 = require('./interrupts'),
-    INT_60 = _require2.INT_60;
-
-var Joypad = function () {
-    function Joypad(mmu) {
-        _classCallCheck(this, Joypad);
-
-        this._mmu = mmu;
-        this._keys = {};
-
-        // Registers
-
-        this._select = 0;
-        this._joyp = [0xf, 0xf];
-    }
-
-    _createClass(Joypad, [{
-        key: 'keyDown',
-        value: function keyDown(code) {
-            debug('keydown %d', code);
-
-            this._keys[code] = true;
-            this._update();
-        }
-    }, {
-        key: 'keyUp',
-        value: function keyUp(code) {
-            debug('keyup %d', code);
-
-            this._keys[code] = false;
-            this._update();
-        }
-    }, {
-        key: 'readByte',
-        value: function readByte(addr) {
-            if (addr == JOYP) {
-                return this._joyp[this._select];
-            }
-
-            throw new Error('unmapped address 0x' + addr.toString(16));
-        }
-    }, {
-        key: 'writeByte',
-        value: function writeByte(addr, val) {
-            if (addr == JOYP) {
-                switch (val & 0x30) {
-                    case 0x10:
-                        this._select = 0;break; // button keys
-                    case 0x20:
-                        this._select = 1;break; // direction keys
-                }
-                return this._joyp[this._select];
-            }
-
-            throw new Error('unmapped address 0x' + addr.toString(16));
-        }
-    }, {
-        key: '_update',
-        value: function _update() {
-            this._joyp = [0xf, 0xf];
-
-            if (this._keys[40]) this._joyp[1] &= ~8; // down
-            if (this._keys[13]) this._joyp[0] &= ~8; // start
-            if (this._keys[38]) this._joyp[1] &= ~4; // up
-            if (this._keys[16]) this._joyp[0] &= ~4; // select
-            if (this._keys[37]) this._joyp[1] &= ~2; // left
-            if (this._keys[90]) this._joyp[0] &= ~2; // a
-            if (this._keys[39]) this._joyp[1] &= ~1; // right
-            if (this._keys[88]) this._joyp[0] &= ~1; // b
-
-            this._mmu.if |= INT_60;
-        }
-    }]);
-
-    return Joypad;
-}();
-
-module.exports = Joypad;
-
-},{"./interrupts":8,"./registers":14,"debug":5}],10:[function(require,module,exports){
-'use strict';
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var _step = require('debug')('lcd:step');
-var stat = require('debug')('lcd:stat');
-
-var _require = require('./registers'),
-    STAT = _require.STAT,
-    LY = _require.LY,
-    LYC = _require.LYC;
-
-var _require2 = require('./interrupts'),
-    INT_40 = _require2.INT_40,
-    INT_48 = _require2.INT_48;
-
-var MAX_CYCLES = 456;
-
-var Lcd = function () {
-    function Lcd(mmu, gpu) {
-        _classCallCheck(this, Lcd);
-
-        this._mmu = mmu;
-        this._gpu = gpu;
-
-        // Registers
-
-        this._stat = 0;
-        this._ly = 0;
-        this._lyc = 0;
-
-        // Timer
-
-        this._t = MAX_CYCLES;
-    }
-
-    _createClass(Lcd, [{
-        key: 'init',
-        value: function init() {
-            this._stat = 0;
-            this._ly = 0;
-            this._lyc = 0;
-
-            this._t = MAX_CYCLES;
-        }
-    }, {
-        key: 'step',
-        value: function step(cycles) {
-            _step('%d', cycles);
-
-            this._t -= cycles;
-
-            /**
-             * Mode Flag
-             *
-             * Mode 0 is present between 201-207 clks, 2 about 77-83 clks, and
-             * 3 about 169-175 clks. A complete cycle through these states takes
-             * 456 clks. VBlank lasts 4560 clks. A complete screen refresh
-             * occurs every 70224 clks.
-             */
-            var mode = 0;
-
-            if (this._ly < 144) {
-                if (this._t > 376) mode = 2;else if (this._t > 204) mode = 3;
-            } else if (this._ly < 154) mode = 1;
-
-            if (mode != (this._stat & 3)) {
-                this._stat &= ~3;
-                this._stat |= mode;
-
-                var intf = false;
-                switch (mode) {
-                    case 0:
-                        if (this._stat & 8) intf = true;break;
-                    case 2:
-                        if (this._stat & 0x10) intf = true;
-                    case 1:
-                        if (this._stat & 0x20) intf = true;
-                }
-
-                if (intf) this._mmu.if |= INT_48;
-            }
-
-            if (this._t > 0) return;
-
-            stat('mode=%d; ly=%d; 0b%s', mode, this._ly, this._stat.toString(2));
-
-            // V-Blank
-
-            if (this._ly == 144) this._mmu.if |= INT_40;
-
-            // Draw
-
-            if (this._ly < 144) this._gpu.drawLine(this._ly);
-
-            if (this._ly < 153) {
-                this._t += MAX_CYCLES;
-                this._ly++;
-            } else {
-                this._t = MAX_CYCLES;
-                this._ly = 0;
-            }
-
-            // Coincidence line
-
-            if (this._ly == this._lyc) {
-                this._stat |= 1 << 2;
-                if (this._stat & 0x40) this._mmu.if |= INT_48;
-            } else this._stat &= ~(1 << 2);
-        }
-    }, {
-        key: 'readByte',
-        value: function readByte(addr) {
-            switch (addr) {
-                case STAT:
-                    return this._stat;
-                case LY:
-                    return this._ly;
-                case LYC:
-                    return this._lyc;
-            }
-
-            throw new Error('unmapped address 0x' + addr.toString(16));
-        }
-    }, {
-        key: 'writeByte',
-        value: function writeByte(addr, val) {
-            switch (addr) {
-                case STAT:
-                    return this._stat |= val & 0x78;
-                case LY:
-                    return this._ly = 0;
-                case LYC:
-                    return this._lyc = val;
-            }
-
-            throw new Error('unmapped address 0x' + addr.toString(16));
-        }
-    }]);
-
-    return Lcd;
-}();
-
-module.exports = Lcd;
-
-},{"./interrupts":8,"./registers":14,"debug":5}],11:[function(require,module,exports){
-(function (process){
-'use strict';
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var read = require('debug')('mmu:read');
-var write = require('debug')('mmu:write');
-var Cart = require('./cart');
-
-var _require = require('./registers'),
-    IF = _require.IF,
-    IE = _require.IE;
-
-/**
- * GameBoy Memory Areas
- *
- * $FFFF        Interrupt Enable Flag
- * $FF80-$FFFE  Zero Page - 127 bytes
- * $FF00-$FF7F  Hardware I/O Registers
- * $FEA0-$FEFF  Unusable Memory
- * $FE00-$FE9F  OAM - Object Attribute Memory
- * $E000-$FDFF  Echo RAM - Reserved, Do Not Use
- * $D000-$DFFF  Internal RAM - Bank 1-7 (switchable - CGB only)
- * $C000-$CFFF  Internal RAM - Bank 0 (fixed)
- * $A000-$BFFF  Cartridge RAM (If Available)
- * $9C00-$9FFF  BG Map Data 2
- * $9800-$9BFF  BG Map Data 1
- * $8000-$97FF  Character RAM
- * $4000-$7FFF  Cartridge ROM - Switchable Banks 1-xx
- * $0150-$3FFF  Cartridge ROM - Bank 0 (fixed)
- * $0100-$014F  Cartridge Header Area
- * $0000-$00FF  Restart and Interrupt Vectors
- */
-
-var Mmu = function () {
-    function Mmu() {
-        var bios = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
-
-        _classCallCheck(this, Mmu);
-
-        this._bios = new Uint8Array(bios);
-        this._biosDisabled = this._bios.length == 0;
-
-        // Mappings
-
-        this.video = null;
-        this.timer = null;
-        this.lcd = null;
-        this.gpu = null;
-        this.joypad = null;
-
-        // Memory Map
-
-        this._wram = new Uint8Array(0x2000);
-        this._io = new Uint8Array(0x80);
-        this._zram = new Uint8Array(0x7f);
-        this._cart = null;
-
-        this.if = 0;
-        this.ie = 0;
-    }
-
-    _createClass(Mmu, [{
-        key: 'init',
-        value: function init() {
-            this._biosDisabled = this._bios.length == 0;
-
-            this.if = 0;
-            this.ie = 0;
-        }
-    }, {
-        key: 'loadCart',
-        value: function loadCart(rom) {
-            this._cart = new Cart(rom);
-        }
-    }, {
-        key: 'readByte',
-        value: function readByte(addr) {
-            addr &= 0xffff;
-
-            read('$%s', addr.toString(16));
-
-            switch (addr >> 12) {
-                case 0x0:
-                    if (!this._biosDisabled && addr < 0x100) {
-                        return this._bios[addr];
-                    }
-                case 0x1:case 0x2:
-                case 0x3:case 0x4:
-                case 0x5:case 0x6:
-                case 0x7:case 0xa:
-                case 0xb:
-                    return this._cart.readByte(addr);
-                case 0x8:case 0x9:
-                    return this.video.readByte(addr);
-                case 0xc:case 0xd:
-                    return this._wram[addr & 0x1fff];
-                case 0xe:case 0xf:
-                    if (addr == IE) return this.ie;
-                    if (addr == IF) return this.if;
-                    if (addr > 0xff7f) return this._zram[addr & 0x7f];
-                    if (addr > 0xfeff) {
-                        switch (addr & 0xff) {
-                            case 0:
-                                return this.joypad.readByte(addr);
-                            case 0x04:case 0x05:
-                            case 0x06:case 0x07:
-                                return this.timer.readByte(addr);
-                            case 0x40:case 0x42:
-                            case 0x43:case 0x47:
-                            case 0x48:case 0x49:
-                            case 0x4a:case 0x4b:
-                                return this.gpu.readByte(addr);
-                            case 0x41:case 0x44:
-                            case 0x45:
-                                return this.lcd.readByte(addr);
-                        }
-                        return this._io[addr & 0xff];
-                    }
-                    if (addr > 0xfe9f) return 0;
-                    if (addr > 0xfdff) return this.video.readByte(addr);
-                    return this._wram[addr & 0x1fff];
-            }
-
-            throw new Error('unmapped address 0x' + addr.toString(16));
-        }
-    }, {
-        key: 'readWord',
-        value: function readWord(addr) {
-            return this.readByte(addr) | this.readByte(addr + 1) << 8;
-        }
-    }, {
-        key: 'writeByte',
-        value: function writeByte(addr, val) {
-            addr &= 0xffff;
-            val &= 0xff;
-
-            write('$%s = 0x%s', addr.toString(16), val.toString(16));
-
-            if (process && process.env.TEST_ROM && addr == 0xff02 && val == 0x81) {
-                var char = String.fromCharCode(this.readByte(0xff01));
-                process.stdout.write(char);
-            }
-
-            switch (addr >> 12) {
-                case 0x0:case 0x1:
-                case 0x2:case 0x3:
-                case 0x4:case 0x5:
-                case 0x6:case 0x7:
-                case 0xa:case 0xb:
-                    return this._cart.writeByte(addr, val);
-                case 0x8:case 0x9:
-                    return this.video.writeByte(addr, val);
-                case 0xc:case 0xd:
-                    return this._wram[addr & 0x1fff] = val;
-                case 0xe:case 0xf:
-                    if (addr == IE) return this.ie = val;
-                    if (addr == IF) return this.if = val;
-                    if (addr > 0xff7f) return this._zram[addr & 0x7f] = val;
-                    if (addr > 0xfeff) {
-                        switch (addr & 0xff) {
-                            case 0:
-                                return this.joypad.writeByte(addr, val);
-                            case 0x04:case 0x05:
-                            case 0x06:case 0x07:
-                                return this.timer.writeByte(addr, val);
-                            case 0x40:case 0x42:
-                            case 0x43:case 0x47:
-                            case 0x48:case 0x49:
-                            case 0x4a:case 0x4b:
-                                return this.gpu.writeByte(addr, val);
-                            case 0x41:case 0x44:
-                            case 0x45:
-                                return this.lcd.writeByte(addr, val);
-                            case 0x46:
-                                this.video.transfer(this, val);
-                                break;
-                            case 0x50:
-                                this._biosDisabled = true;
-                                break;
-                        }
-                        return this._io[addr & 0xff] = val;
-                    }
-                    if (addr > 0xfe9f) return;
-                    if (addr > 0xfdff) return this.video.writeByte(addr, val);
-                    return this._wram[addr & 0x1fff] = val;
-            }
-
-            throw new Error('unmapped address 0x' + addr.toString(16));
-        }
-    }, {
-        key: 'writeWord',
-        value: function writeWord(addr, val) {
-            this.writeByte(addr, val);
-            this.writeByte(addr + 1, val >> 8);
-        }
-    }]);
-
-    return Mmu;
-}();
-
-module.exports = Mmu;
-
-}).call(this,require('_process'))
-},{"./cart":3,"./registers":14,"_process":20,"debug":5}],12:[function(require,module,exports){
-'use strict';
-
-Number.prototype.signed = function () {
-    return this & 0x80 ? -((0xff & ~this) + 1) : this;
-};
-
-},{}],13:[function(require,module,exports){
-'use strict';
-
-require('./number');
+require('../util/number');
 
 var unknown = function unknown() {
     var prefix = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
@@ -4545,7 +3393,1366 @@ $[0xd9] = ['RETI', function (cpu, mmu) {
     return 16;
 }];
 
-},{"./number":12}],14:[function(require,module,exports){
+},{"../util/number":16}],4:[function(require,module,exports){
+'use strict';
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var _step = require('debug')('gameboy:timer:step');
+var divider = require('debug')('gameboy:timer:divider');
+var counter = require('debug')('gameboy:timer:counter');
+
+var _require = require('../registers'),
+    DIV = _require.DIV,
+    TIMA = _require.TIMA,
+    TMA = _require.TMA,
+    TAC = _require.TAC;
+
+var _require2 = require('../interrupts'),
+    INT_50 = _require2.INT_50;
+
+var MAX_DIVIDER = 16384;
+
+// Timer Clock Select
+
+var CLOCK_SELECT = [];
+
+CLOCK_SELECT[0] = 4096; // 00: CPU Clock / 1024
+CLOCK_SELECT[1] = 262144; // 01: CPU Clock / 16
+CLOCK_SELECT[2] = 65536; // 10: CPU Clock / 64
+CLOCK_SELECT[3] = 16384; // 11: CPU Clock / 256
+
+
+var Timer = function () {
+    function Timer(mmu) {
+        _classCallCheck(this, Timer);
+
+        this._mmu = mmu;
+
+        // Registers
+
+        this._div = 0;
+        this._tima = 0;
+        this._tma = 0;
+        this._tac = 0;
+
+        // Timers
+
+        this._divider = MAX_DIVIDER;
+        this._t = CLOCK_SELECT[0];
+    }
+
+    _createClass(Timer, [{
+        key: 'init',
+        value: function init() {
+            this._div = 0;
+            this._tima = 0;
+            this._tma = 0;
+            this._tac = 0;
+
+            this._divider = MAX_DIVIDER;
+            this._t = CLOCK_SELECT[0];
+        }
+    }, {
+        key: 'step',
+        value: function step(cycles) {
+            _step('%d', cycles);
+
+            // Divider
+
+            this._divider -= cycles;
+            if (this._divider <= 0) {
+                this._div = ++this._div & 0xff;
+                divider('0x%s', this._div.toString(16));
+
+                this._divider += MAX_DIVIDER;
+            }
+
+            // Timer
+
+            if ((this._tac & 4) == 0) return;
+
+            this._t -= cycles;
+            if (this._t > 0) return;
+
+            this._tima = ++this._tima & 0xff;
+            if (this._tima == 0) {
+                this._tima = this._tma;
+                this._mmu.if |= INT_50;
+            }
+            counter('0x%s', this._tima.toString(16));
+
+            this._t += CLOCK_SELECT[this._tac & 3];
+        }
+    }, {
+        key: 'readByte',
+        value: function readByte(addr) {
+            switch (addr) {
+                case DIV:
+                    return this._div;
+                case TIMA:
+                    return this._tima;
+                case TMA:
+                    return this._tma;
+                case TAC:
+                    return this._tac;
+            }
+
+            throw new Error('unmapped address 0x' + addr.toString(16));
+        }
+    }, {
+        key: 'writeByte',
+        value: function writeByte(addr, val) {
+            switch (addr) {
+                case DIV:
+                    return this._div = 0;
+                case TIMA:
+                    return this._tima = val;
+                case TMA:
+                    return this._tma = val;
+                case TAC:
+                    return this._tac = val;
+            }
+
+            throw new Error('unmapped address 0x' + addr.toString(16));
+        }
+    }]);
+
+    return Timer;
+}();
+
+module.exports = Timer;
+
+},{"../interrupts":9,"../registers":13,"debug":15}],5:[function(require,module,exports){
+'use strict';
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Video = require('./gpu/video');
+var Timer = require('./cpu/timer');
+var Lcd = require('./gpu/lcd');
+var Mmu = require('./mmu');
+var Gpu = require('./gpu/gpu');
+var Cpu = require('./cpu/cpu');
+var Joypad = require('./io/joypad');
+var Cart = require('./io/cart');
+
+var Gameboy = function () {
+    function Gameboy(bios) {
+        _classCallCheck(this, Gameboy);
+
+        var mmu = new Mmu(bios);
+
+        var video = new Video();
+        var gpu = new Gpu(video);
+        var timer = new Timer(mmu);
+        var lcd = new Lcd(mmu, gpu);
+        var cpu = new Cpu(mmu, gpu, timer, lcd);
+        var joypad = new Joypad(mmu);
+
+        this._timer = timer;
+        this._lcd = lcd;
+        this._mmu = mmu;
+        this._gpu = gpu;
+        this._cpu = cpu;
+        this._joypad = joypad;
+
+        // Mappings
+
+        mmu.video = video;
+        mmu.timer = timer;
+        mmu.lcd = lcd;
+        mmu.gpu = gpu;
+        mmu.joypad = joypad;
+
+        // Use Bootstrap
+
+        this._useBios = bios && bios.length > 0;
+
+        // Gameloop
+
+        this._isRunning = true;
+    }
+
+    _createClass(Gameboy, [{
+        key: 'loadCart',
+        value: function loadCart(rom) {
+            this._isRunning = false;
+            this._cpu.stop();
+            this._mmu.loadCart(new Cart(rom));
+        }
+    }, {
+        key: 'start',
+        value: function start() {
+            this._isRunning = true;
+            this._init();
+            this._cpu.start();
+        }
+    }, {
+        key: 'pauseResume',
+        value: function pauseResume() {
+            this._isRunning = !this._isRunning;
+            if (this._isRunning) this._cpu.start();else this._cpu.stop();
+        }
+    }, {
+        key: 'reset',
+        value: function reset() {
+            this._isRunning = false;
+            this._cpu.stop();
+            this.start();
+        }
+    }, {
+        key: '_init',
+        value: function _init() {
+            this._timer.init();
+            this._lcd.init();
+            this._mmu.init();
+            this._cpu.init();
+
+            if (!this._useBios) {
+                this._cpu.pc = 0x100;
+                this._cpu.af = 0x1b0;
+                this._cpu.bc = 0x13;
+                this._cpu.de = 0xd8;
+                this._cpu.hl = 0x14d;
+                this._cpu.sp = 0xfffe;
+
+                this._mmu.writeByte(0xff05, 0x00); // TIMA
+                this._mmu.writeByte(0xff06, 0x00); // TMA
+                this._mmu.writeByte(0xff07, 0x00); // TAC
+                this._mmu.writeByte(0xff10, 0x80); // NR10
+                this._mmu.writeByte(0xff11, 0xbf); // NR11
+                this._mmu.writeByte(0xff12, 0xf3); // NR12
+                this._mmu.writeByte(0xff14, 0xbf); // NR14
+                this._mmu.writeByte(0xff16, 0x3f); // NR21
+                this._mmu.writeByte(0xff17, 0x00); // NR22
+                this._mmu.writeByte(0xff19, 0xbf); // NR24
+                this._mmu.writeByte(0xff1a, 0x7f); // NR30
+                this._mmu.writeByte(0xff1b, 0xff); // NR31
+                this._mmu.writeByte(0xff1c, 0x9f); // NR32
+                this._mmu.writeByte(0xff1e, 0xbf); // NR33
+                this._mmu.writeByte(0xff20, 0xff); // NR41
+                this._mmu.writeByte(0xff21, 0x00); // NR42
+                this._mmu.writeByte(0xff22, 0x00); // NR43
+                this._mmu.writeByte(0xff23, 0xbf); // NR30
+                this._mmu.writeByte(0xff24, 0x77); // NR50
+                this._mmu.writeByte(0xff25, 0xf3); // NR51
+                this._mmu.writeByte(0xff26, 0xf1); // NR52
+                this._mmu.writeByte(0xff40, 0x91); // LCDC
+                this._mmu.writeByte(0xff42, 0x00); // SCY
+                this._mmu.writeByte(0xff43, 0x00); // SCX
+                this._mmu.writeByte(0xff45, 0x00); // LYC
+                this._mmu.writeByte(0xff47, 0xfc); // BGP
+                this._mmu.writeByte(0xff48, 0xff); // OBP0
+                this._mmu.writeByte(0xff49, 0xff); // OBP1
+                this._mmu.writeByte(0xff4a, 0x00); // WY
+                this._mmu.writeByte(0xff4b, 0x00); // WX
+                this._mmu.writeByte(0xffff, 0x00); // IE
+            }
+        }
+    }, {
+        key: 'gpu',
+        get: function get() {
+            return this._gpu;
+        }
+    }, {
+        key: 'joypad',
+        get: function get() {
+            return this._joypad;
+        }
+    }]);
+
+    return Gameboy;
+}();
+
+module.exports = Gameboy;
+
+},{"./cpu/cpu":2,"./cpu/timer":4,"./gpu/gpu":6,"./gpu/lcd":7,"./gpu/video":8,"./io/cart":10,"./io/joypad":11,"./mmu":12}],6:[function(require,module,exports){
+'use strict';
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var _render = require('debug')('gameboy:gpu:render');
+var control = require('debug')('gameboy:gpu:control');
+var EventEmitter = require('events').EventEmitter;
+var Canvas = require('../shims/canvas');
+
+var _require = require('../registers'),
+    LCDC = _require.LCDC,
+    SCY = _require.SCY,
+    SCX = _require.SCX,
+    WY = _require.WY,
+    WX = _require.WX,
+    BGP = _require.BGP,
+    OBP0 = _require.OBP0,
+    OBP1 = _require.OBP1;
+
+require('../util/number');
+
+// Non CGB gray shades
+
+var GRAY_SHADES = [];
+
+GRAY_SHADES[0] = [255, 255, 255];
+GRAY_SHADES[1] = [192, 192, 192];
+GRAY_SHADES[2] = [96, 96, 96];
+GRAY_SHADES[3] = [0, 0, 0];
+
+var FRAME_WIDTH = 160;
+var FRAME_HEIGHT = 144;
+
+var Gpu = function (_EventEmitter) {
+    _inherits(Gpu, _EventEmitter);
+
+    function Gpu(video) {
+        _classCallCheck(this, Gpu);
+
+        var _this = _possibleConstructorReturn(this, (Gpu.__proto__ || Object.getPrototypeOf(Gpu)).call(this));
+
+        _this._video = video;
+
+        // Registers
+
+        _this._lcdc = 0;
+        _this._scy = 0;
+        _this._scx = 0;
+        _this._wy = 0;
+        _this._wx = 0;
+        _this._bgp = 0;
+        _this._obp0 = 0;
+        _this._obp1 = 0;
+
+        // Display
+
+        _this._bgpal = null;
+        _this._objpal = [];
+
+        // Canvas
+
+        _this._canvas = new Canvas(FRAME_WIDTH, FRAME_HEIGHT);
+        _this._ctx = _this._canvas.getContext('2d');
+        _this._image = _this._ctx.getImageData(0, 0, FRAME_WIDTH, FRAME_HEIGHT);
+        _this._data = _this._image.data;
+        return _this;
+    }
+
+    _createClass(Gpu, [{
+        key: 'readByte',
+        value: function readByte(addr) {
+            switch (addr) {
+                case LCDC:
+                    return this._lcdc;
+                case SCY:
+                    return this._scy;
+                case SCX:
+                    return this._scx;
+                case BGP:
+                    return this._bgp;
+                case OBP0:
+                    return this._obp0;
+                case OBP1:
+                    return this._obp1;
+                case WY:
+                    return this._wy;
+                case WX:
+                    return this._wx;
+            }
+
+            throw new Error('unmapped address 0x' + addr.toString(16));
+        }
+    }, {
+        key: 'writeByte',
+        value: function writeByte(addr, val) {
+            switch (addr) {
+                case LCDC:
+                    return this._lcdc = val;
+                case SCY:
+                    return this._scy = val;
+                case SCX:
+                    return this._scx = val;
+                case BGP:
+                    this._bgpal = this._createPalette(val);
+                    return this._bgp = val;
+                case OBP0:
+                    this._objpal[0] = this._createPalette(val);
+                    return this._obp0 = val;
+                case OBP1:
+                    this._objpal[1] = this._createPalette(val);
+                    return this._obp1 = val;
+                case WY:
+                    return this._wy = val;
+                case WX:
+                    return this._wx = val;
+            }
+
+            throw new Error('unmapped address 0x' + addr.toString(16));
+        }
+    }, {
+        key: 'drawLine',
+        value: function drawLine(line) {
+            var data = this._lcdc >> 4 & 1;
+
+            // Background
+
+            if (this._lcdc & 1) {
+                var map = this._lcdc >> 3 & 1;
+                this._drawBackground(line, this._scx, this._scy, map, data);
+            }
+
+            // Window
+
+            if (this._lcdc & 0x20 && line >= this._wy) {
+                var _map = this._lcdc >> 6 & 1;
+                this._drawWindow(line, this._wx - 7, this._wy, _map, data);
+            }
+
+            // Sprites
+
+            if (this._lcdc & 2) {
+                this._drawSprites(line);
+            }
+        }
+    }, {
+        key: 'render',
+        value: function render() {
+            _render('frame');
+
+            // LCD Display Enable
+
+            control('%s', this._lcdc.toString(2));
+
+            if (this._lcdc & 0x80 == 0) {
+                this._ctx.fillStyle = 'white';
+                this._ctx.fillRect(0, 0, FRAME_WIDTH, FRAME_HEIGHT);
+            }
+
+            this._ctx.putImageData(this._image, 0, 0);
+            this._ctx.drawImage(this._canvas, 0, 0);
+
+            this.emit('frame', this._canvas);
+        }
+    }, {
+        key: '_createPalette',
+        value: function _createPalette(palette) {
+            return [GRAY_SHADES[palette & 3], GRAY_SHADES[palette >> 2 & 3], GRAY_SHADES[palette >> 4 & 3], GRAY_SHADES[palette >> 6 & 3]];
+        }
+    }, {
+        key: '_drawBackground',
+        value: function _drawBackground(line, offsetX, offsetY, mapSelect, dataSelect) {
+            var map = this._video.bgMap[mapSelect];
+            var y = offsetY + line;
+
+            for (var i = 0; i < FRAME_WIDTH; i++) {
+                var x = offsetX + i;
+
+                var col = (x & 0xff) >> 3;
+                var row = (y & 0xff) >> 3;
+
+                var n = map[row * 32 + col];
+                var tile = this._video.tiles[dataSelect ? n : 256 + n.signed()];
+                var shade = this._bgpal[tile[y & 7][x & 7]];
+
+                var offset = (line * FRAME_WIDTH + i) * 4;
+
+                this._data[offset] = shade[0];
+                this._data[++offset] = shade[1];
+                this._data[++offset] = shade[2];
+                this._data[++offset] = 255;
+            }
+        }
+    }, {
+        key: '_drawWindow',
+        value: function _drawWindow(line, posX, posY, mapSelect, dataSelect) {
+            var map = this._video.bgMap[mapSelect];
+            var y = line - posY;
+
+            for (var i = posX; i < FRAME_WIDTH; i++) {
+                var x = i - posX;
+
+                var col = x >> 3;
+                var row = y >> 3;
+
+                var n = map[row * 32 + col];
+                var tile = this._video.tiles[dataSelect ? n : 256 + n.signed()];
+                var shade = this._bgpal[tile[y & 7][x & 7]];
+
+                var offset = (line * FRAME_WIDTH + i) * 4;
+
+                this._data[offset] = shade[0];
+                this._data[++offset] = shade[1];
+                this._data[++offset] = shade[2];
+                this._data[++offset] = 255;
+            }
+        }
+    }, {
+        key: '_drawSprites',
+        value: function _drawSprites(line) {
+            var height = this._lcdc & 4 ? 16 : 8;
+            var count = 0;
+
+            var sprites = this._video.sprites.sort(function (a, b) {
+                return a[1] - b[1];
+            });
+            for (var i = sprites.length - 1; i > -1; i--) {
+                var sprite = sprites[i];
+
+                // Position
+
+                var sy = sprite[0] - 16;
+                var sx = sprite[1] - 8;
+
+                if (!(line >= sy && line < sy + height)) continue;
+                if (sx >= FRAME_WIDTH || sy >= FRAME_HEIGHT) continue;
+                if (++count > 10) continue;
+
+                // Tile/Pattern Number
+
+                var n = this._lcdc & 4 ? sprite[2] & 0xfe : sprite[2];
+
+                // Attributes/Flags
+
+                var attrs = sprite[3];
+
+                var priority = attrs >> 7 & 1;
+                var yflip = attrs >> 6 & 1;
+                var xflip = attrs >> 5 & 1;
+                var palette = this._objpal[attrs >> 4 & 1];
+
+                // Draw
+
+                var py = yflip ? height - 1 - (line - sy) : line - sy;
+                var data = this._data;
+
+                for (var x = sx; x < sx + 8; x++) {
+                    if (x < 0) continue;
+
+                    var offset = (line * FRAME_WIDTH + x) * 4;
+
+                    if (priority && data[offset + 0] != 255 && data[offset + 1] != 255 && data[offset + 2] != 255) continue;
+
+                    var tile = this._video.tiles[n + (py >> 3 & 1)];
+                    var color = tile[py & 7][xflip ? 7 - (x - sx) : x - sx];
+                    if (color == 0) continue;
+
+                    var shade = palette[color];
+
+                    data[offset + 0] = shade[0];
+                    data[offset + 1] = shade[1];
+                    data[offset + 2] = shade[2];
+                    data[offset + 3] = 255;
+                }
+            };
+        }
+    }]);
+
+    return Gpu;
+}(EventEmitter);
+
+module.exports = Gpu;
+
+},{"../registers":13,"../shims/canvas":14,"../util/number":16,"debug":15,"events":18}],7:[function(require,module,exports){
+'use strict';
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var _step = require('debug')('gameboy:lcd:step');
+var stat = require('debug')('gameboy:lcd:stat');
+
+var _require = require('../registers'),
+    STAT = _require.STAT,
+    LY = _require.LY,
+    LYC = _require.LYC;
+
+var _require2 = require('../interrupts'),
+    INT_40 = _require2.INT_40,
+    INT_48 = _require2.INT_48;
+
+var MAX_CYCLES = 456;
+
+var Lcd = function () {
+    function Lcd(mmu, gpu) {
+        _classCallCheck(this, Lcd);
+
+        this._mmu = mmu;
+        this._gpu = gpu;
+
+        // Registers
+
+        this._stat = 0;
+        this._ly = 0;
+        this._lyc = 0;
+
+        // Timer
+
+        this._t = MAX_CYCLES;
+    }
+
+    _createClass(Lcd, [{
+        key: 'init',
+        value: function init() {
+            this._stat = 0;
+            this._ly = 0;
+            this._lyc = 0;
+
+            this._t = MAX_CYCLES;
+        }
+    }, {
+        key: 'step',
+        value: function step(cycles) {
+            _step('%d', cycles);
+
+            this._t -= cycles;
+
+            /**
+             * Mode Flag
+             *
+             * Mode 0 is present between 201-207 clks, 2 about 77-83 clks, and
+             * 3 about 169-175 clks. A complete cycle through these states takes
+             * 456 clks. VBlank lasts 4560 clks. A complete screen refresh
+             * occurs every 70224 clks.
+             */
+            var mode = 0;
+
+            if (this._ly < 144) {
+                if (this._t > 376) mode = 2;else if (this._t > 204) mode = 3;
+            } else if (this._ly < 154) mode = 1;
+
+            if (mode != (this._stat & 3)) {
+                this._stat &= ~3;
+                this._stat |= mode;
+
+                var intf = false;
+                switch (mode) {
+                    case 0:
+                        if (this._stat & 8) intf = true;break;
+                    case 2:
+                        if (this._stat & 0x10) intf = true;
+                    case 1:
+                        if (this._stat & 0x20) intf = true;
+                }
+
+                if (intf) this._mmu.if |= INT_48;
+            }
+
+            if (this._t > 0) return;
+
+            stat('mode=%d; ly=%d; 0b%s', mode, this._ly, this._stat.toString(2));
+
+            // V-Blank
+
+            if (this._ly == 144) this._mmu.if |= INT_40;
+
+            // Draw
+
+            if (this._ly < 144) this._gpu.drawLine(this._ly);
+
+            if (this._ly < 153) {
+                this._t += MAX_CYCLES;
+                this._ly++;
+            } else {
+                this._t = MAX_CYCLES;
+                this._ly = 0;
+            }
+
+            // Coincidence line
+
+            if (this._ly == this._lyc) {
+                this._stat |= 1 << 2;
+                if (this._stat & 0x40) this._mmu.if |= INT_48;
+            } else this._stat &= ~(1 << 2);
+        }
+    }, {
+        key: 'readByte',
+        value: function readByte(addr) {
+            switch (addr) {
+                case STAT:
+                    return this._stat;
+                case LY:
+                    return this._ly;
+                case LYC:
+                    return this._lyc;
+            }
+
+            throw new Error('unmapped address 0x' + addr.toString(16));
+        }
+    }, {
+        key: 'writeByte',
+        value: function writeByte(addr, val) {
+            switch (addr) {
+                case STAT:
+                    return this._stat |= val & 0x78;
+                case LY:
+                    return this._ly = 0;
+                case LYC:
+                    return this._lyc = val;
+            }
+
+            throw new Error('unmapped address 0x' + addr.toString(16));
+        }
+    }]);
+
+    return Lcd;
+}();
+
+module.exports = Lcd;
+
+},{"../interrupts":9,"../registers":13,"debug":15}],8:[function(require,module,exports){
+'use strict';
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var dma = require('debug')('gameboy:video:dma');
+
+var Video = function () {
+    function Video() {
+        _classCallCheck(this, Video);
+
+        this._ram = new Uint8Array(0x2000);
+        this._oam = new Uint8Array(0xa0);
+
+        this.bgMap = [new Array(0x400).fill(0), new Array(0x400).fill(0)];
+        this.tiles = this._initTiles(32 * 32);
+        this.sprites = this._initSprites(40);
+    }
+
+    _createClass(Video, [{
+        key: 'transfer',
+        value: function transfer(mmu, val) {
+            var start = (val & 0xff) << 8;
+
+            dma('transfer from 0x%s', start.toString(16));
+
+            for (var addr = start; addr < start + 0xa0; addr++) {
+                var data = mmu.readByte(addr);
+                var pos = addr & 0xff;
+
+                dma('copy $%s = 0x%s', addr.toString(16), data.toString(16));
+
+                this.sprites[pos >> 2][pos & 3] = data;
+                this._oam[pos] = data;
+            }
+        }
+    }, {
+        key: 'readByte',
+        value: function readByte(addr) {
+            switch (addr >> 12) {
+                case 0x8:case 0x9:
+                    return this._ram[addr & 0x1fff];
+                case 0xf:
+                    if (addr > 0xfe9f) break;
+                    if (addr > 0xfdff) return this._oam[addr & 0xff];
+            }
+
+            throw new Error('unmapped address 0x' + addr.toString(16));
+        }
+    }, {
+        key: 'writeByte',
+        value: function writeByte(addr, val) {
+            switch (addr >> 12) {
+                case 0x8:case 0x9:
+                    if (addr > 0x97ff) {
+                        this.bgMap[addr >> 10 & 1][addr & 0x3ff] = val;
+                    } else {
+                        var pos = addr & 0x1fff;
+                        var res = this._sumBytes(this._ram[pos - 1], val);
+                        this.tiles[pos >> 4][pos >> 1 & 7] = res;
+                    }
+                    return this._ram[addr & 0x1fff] = val;
+                case 0xf:
+                    if (addr > 0xfe9f) break;
+                    if (addr > 0xfdff) {
+                        var _pos = addr & 0xff;
+                        this.sprites[_pos >> 2][_pos & 3] = val;
+                        return this._oam[_pos] = val;
+                    }
+            }
+
+            throw new Error('unmapped address 0x' + addr.toString(16));
+        }
+    }, {
+        key: '_initTiles',
+        value: function _initTiles(length) {
+            var tiles = [];
+            for (var i = 0; i < length; i++) {
+                tiles[i] = [[0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0]];
+            }return tiles;
+        }
+    }, {
+        key: '_initSprites',
+        value: function _initSprites(length) {
+            var sprites = [];
+            for (var i = 0; i < length; i++) {
+                sprites[i] = [0, 0, 0, 0];
+            }return sprites;
+        }
+    }, {
+        key: '_sumBytes',
+        value: function _sumBytes(x, y) {
+            var line = [];
+            for (var b = 7; b > -1; b--) {
+                var val = x >> b & 1 | (y >> b & 1) << 1;
+                line[7 - b] = val;
+            }
+
+            return line;
+        }
+    }]);
+
+    return Video;
+}();
+
+module.exports = Video;
+
+},{"debug":15}],9:[function(require,module,exports){
+'use strict';
+
+/**
+ * INT 40 - V-Blank Interrupt
+ *
+ * The V-Blank interrupt occurs ca. 59.7 times a second on a regular GB and ca.
+ * 61.1 times a second on a Super GB (SGB). This interrupt occurs at the
+ * beginning of the V-Blank period (LY=144).
+ * During this period video hardware is not using video ram so it may be freely
+ * accessed. This period lasts approximately 1.1 milliseconds.
+ */
+
+exports.INT_40 = 1;
+
+/**
+ * INT 48 - LCDC Status Interrupt
+ *
+ * There are various reasons for this interrupt to occur as described by the
+ * STAT register ($FF40). One very popular reason is to indicate to the user
+ * when the video hardware is about to redraw a given LCD line. This can be
+ * useful for dynamically controlling the SCX/SCY registers ($FF43/$FF42) to
+ * perform special video effects.
+ */
+exports.INT_48 = 1 << 1;
+
+/**
+ * INT 50 - Timer Interrupt
+ *
+ * Each time when the timer overflows (ie. when TIMA gets bigger than FFh), then
+ * an interrupt is requested by setting Bit 2 in the IF Register (FF0F). When
+ * that interrupt is enabled, then the CPU will execute it by calling the timer
+ * interrupt vector at 0050h.
+ */
+exports.INT_50 = 1 << 2;
+
+/**
+ * INT 58 - Serial Interrupt
+ *
+ * When the transfer has completed (ie. after sending/receiving 8 bits, if any)
+ * then an interrupt is requested by setting Bit 3 of the IF Register (FF0F).
+ * When that interrupt is enabled, then the Serial Interrupt vector at 0058 is
+ * called.
+ */
+exports.INT_58 = 1 << 3;
+
+/**
+ * INT 60 - Joypad Interrupt
+ *
+ * Joypad interrupt is requested when any of the above Input lines changes from
+ * High to Low. Generally this should happen when a key becomes pressed
+ * (provided that the button/direction key is enabled by above Bit4/5), however,
+ * because of switch bounce, one or more High to Low transitions are usually
+ * produced both when pressing or releasing a key.
+ */
+exports.INT_60 = 1 << 4;
+
+},{}],10:[function(require,module,exports){
+'use strict';
+
+/**
+ * 0147 - Cartridge Type
+ *
+ * Specifies which Memory Bank Controller (if any) is used in the cartridge,
+ * and if further external hardware exists in the cartridge.
+ *
+ * 00h  ROM ONLY                 13h  MBC3+RAM+BATTERY
+ * 01h  MBC1                     15h  MBC4
+ * 02h  MBC1+RAM                 16h  MBC4+RAM
+ * 03h  MBC1+RAM+BATTERY         17h  MBC4+RAM+BATTERY
+ * 05h  MBC2                     19h  MBC5
+ * 06h  MBC2+BATTERY             1Ah  MBC5+RAM
+ * 08h  ROM+RAM                  1Bh  MBC5+RAM+BATTERY
+ * 09h  ROM+RAM+BATTERY          1Ch  MBC5+RUMBLE
+ * 0Bh  MMM01                    1Dh  MBC5+RUMBLE+RAM
+ * 0Ch  MMM01+RAM                1Eh  MBC5+RUMBLE+RAM+BATTERY
+ * 0Dh  MMM01+RAM+BATTERY        FCh  POCKET CAMERA
+ * 0Fh  MBC3+TIMER+BATTERY       FDh  BANDAI TAMA5
+ * 10h  MBC3+TIMER+RAM+BATTERY   FEh  HuC3
+ * 11h  MBC3
+ */
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var CART_TYPE = [];
+
+CART_TYPE[0x00] = 'ROM ONLY';
+CART_TYPE[0x01] = 'MBC1';
+CART_TYPE[0x02] = 'MBC1+RAM';
+CART_TYPE[0x03] = 'MBC1+RAM+BATTERY';
+CART_TYPE[0x05] = 'MBC2';
+CART_TYPE[0x06] = 'MBC2+BATTERY';
+
+/**
+ * 0148 - ROM Size
+ *
+ * Specifies the ROM Size of the cartridge. Typically calculated as
+ * "32KB shl N".
+ *
+ * 00h -  32KByte (no ROM banking)
+ * 01h -  64KByte (4 banks)
+ * 02h - 128KByte (8 banks)
+ * 03h - 256KByte (16 banks)
+ * 04h - 512KByte (32 banks)
+ * 05h -   1MByte (64 banks)  - only 63 banks used by MBC1
+ * 06h -   2MByte (128 banks) - only 125 banks used by MBC1
+ * 07h -   4MByte (256 banks)
+ * 52h - 1.1MByte (72 banks)
+ * 53h - 1.2MByte (80 banks)
+ * 54h - 1.5MByte (96 banks)
+ */
+
+var ROM_SIZE = [];
+
+ROM_SIZE[0x00] = 1;
+ROM_SIZE[0x01] = 2;
+ROM_SIZE[0x02] = 4;
+ROM_SIZE[0x03] = 8;
+ROM_SIZE[0x04] = 16;
+
+/**
+ * 0149 - RAM Size
+ *
+ * Specifies the size of the external RAM in the cartridge (if any).
+ *
+ * 00h - None
+ * 01h - 2 KBytes
+ * 02h - 8 Kbytes
+ * 03h - 32 KBytes (4 banks of 8KBytes each)
+ *
+ * When using a MBC2 chip 00h must be specified in this entry, even though the
+ * MBC2 includes a built-in RAM of 512 x 4 bits
+ */
+
+var RAM_SIZE = [];
+
+RAM_SIZE[0x00] = 0;
+RAM_SIZE[0x01] = 2;
+RAM_SIZE[0x02] = 8;
+RAM_SIZE[0x03] = 32;
+
+var Cart = function () {
+    function Cart(rom) {
+        _classCallCheck(this, Cart);
+
+        var cart = new Uint8Array(rom);
+
+        // Cartridge Header
+
+        this._title = this._sliceToString(cart, 0x0134, 0x0143);
+        this._type = cart[0x0147];
+        this._romSize = cart[0x0148];
+        this._ramSize = cart[0x0149];
+
+        // Memory Map
+
+        this._rom = new Uint8Array(cart, 0, 0x8000 * ROM_SIZE[this._romSize]);
+        this._ram = new Uint8Array(0x800 * RAM_SIZE[this._ramSize]);
+
+        // MBC
+
+        this._romBank = 1;
+        this._ramBank = 0;
+        this._ramEnabled = false;
+        this._mode = 0;
+    }
+
+    _createClass(Cart, [{
+        key: 'readByte',
+        value: function readByte(addr) {
+            switch (addr >> 12) {
+                case 0x0:case 0x1:
+                case 0x2:case 0x3:
+                    return this._rom[addr];
+                case 0x4:case 0x5:
+                case 0x6:case 0x7:
+                    {
+                        var pos = addr & 0x3fff;
+                        return this._rom[0x4000 * this._romBank + pos];
+                    }
+                case 0xa:case 0xb:
+                    {
+                        var _pos = addr & 0x1fff;
+                        return this._ram[0x2000 * this._ramBank + _pos];
+                    }
+            }
+
+            throw new Error('unmapped address 0x' + addr.toString(16));
+        }
+    }, {
+        key: 'writeByte',
+        value: function writeByte(addr, val) {
+            switch (addr >> 12) {
+                case 0x0:case 0x1:
+                    return this._ramEnabled = (val & 0xf) == 0xa;
+                case 0x2:case 0x3:
+                    val &= 0x1f;
+                    return this._romBank = (val & 0xf) == 0 ? val++ : val;
+                case 0x4:case 0x5:
+                    val &= 3;
+                    if (this._mode == 1) return this._ramBank = val;
+                    return this._romBank |= val << 5;
+                case 0x6:case 0x7:
+                    return this._mode = val & 1;
+                case 0xa:case 0xb:
+                    if (!this._ramEnabled) return;
+                    var pos = addr & 0x1fff;
+                    return this._ram[0x2000 * this._ramBank + pos] = val;
+            }
+
+            throw new Error('unmapped address 0x' + addr.toString(16));
+        }
+    }, {
+        key: 'toJSON',
+        value: function toJSON() {
+            return {
+                title: this._title,
+                type: CART_TYPE[this._type],
+                romSize: this._romSize,
+                ramSize: this._ramSize
+            };
+        }
+    }, {
+        key: '_sliceToString',
+        value: function _sliceToString(data, begin, end) {
+            return String.fromCharCode.apply(String, _toConsumableArray(data.slice(begin, end))).replace(/\0/g, '');
+        }
+    }]);
+
+    return Cart;
+}();
+
+module.exports = Cart;
+
+},{}],11:[function(require,module,exports){
+'use strict';
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var debug = require('debug')('gameboy:joypad');
+
+var _require = require('../registers'),
+    JOYP = _require.JOYP;
+
+var _require2 = require('../interrupts'),
+    INT_60 = _require2.INT_60;
+
+var Joypad = function () {
+    function Joypad(mmu) {
+        _classCallCheck(this, Joypad);
+
+        this._mmu = mmu;
+        this._keys = {};
+
+        // Registers
+
+        this._select = 0;
+        this._joyp = [0xf, 0xf];
+    }
+
+    _createClass(Joypad, [{
+        key: 'keyDown',
+        value: function keyDown(code) {
+            debug('keydown %d', code);
+
+            this._keys[code] = true;
+            this._update();
+        }
+    }, {
+        key: 'keyUp',
+        value: function keyUp(code) {
+            debug('keyup %d', code);
+
+            this._keys[code] = false;
+            this._update();
+        }
+    }, {
+        key: 'readByte',
+        value: function readByte(addr) {
+            if (addr == JOYP) {
+                return this._joyp[this._select];
+            }
+
+            throw new Error('unmapped address 0x' + addr.toString(16));
+        }
+    }, {
+        key: 'writeByte',
+        value: function writeByte(addr, val) {
+            if (addr == JOYP) {
+                switch (val & 0x30) {
+                    case 0x10:
+                        this._select = 0;break; // button keys
+                    case 0x20:
+                        this._select = 1;break; // direction keys
+                }
+                return this._joyp[this._select];
+            }
+
+            throw new Error('unmapped address 0x' + addr.toString(16));
+        }
+    }, {
+        key: '_update',
+        value: function _update() {
+            this._joyp = [0xf, 0xf];
+
+            if (this._keys[40]) this._joyp[1] &= ~8; // down
+            if (this._keys[13]) this._joyp[0] &= ~8; // start
+            if (this._keys[38]) this._joyp[1] &= ~4; // up
+            if (this._keys[16]) this._joyp[0] &= ~4; // select
+            if (this._keys[37]) this._joyp[1] &= ~2; // left
+            if (this._keys[90]) this._joyp[0] &= ~2; // a
+            if (this._keys[39]) this._joyp[1] &= ~1; // right
+            if (this._keys[88]) this._joyp[0] &= ~1; // b
+
+            this._mmu.if |= INT_60;
+        }
+    }]);
+
+    return Joypad;
+}();
+
+module.exports = Joypad;
+
+},{"../interrupts":9,"../registers":13,"debug":15}],12:[function(require,module,exports){
+(function (process){
+'use strict';
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var read = require('debug')('gameboy:mmu:read');
+var write = require('debug')('gameboy:mmu:write');
+
+var _require = require('./registers'),
+    IF = _require.IF,
+    IE = _require.IE;
+
+/**
+ * GameBoy Memory Areas
+ *
+ * $FFFF        Interrupt Enable Flag
+ * $FF80-$FFFE  Zero Page - 127 bytes
+ * $FF00-$FF7F  Hardware I/O Registers
+ * $FEA0-$FEFF  Unusable Memory
+ * $FE00-$FE9F  OAM - Object Attribute Memory
+ * $E000-$FDFF  Echo RAM - Reserved, Do Not Use
+ * $D000-$DFFF  Internal RAM - Bank 1-7 (switchable - CGB only)
+ * $C000-$CFFF  Internal RAM - Bank 0 (fixed)
+ * $A000-$BFFF  Cartridge RAM (If Available)
+ * $9C00-$9FFF  BG Map Data 2
+ * $9800-$9BFF  BG Map Data 1
+ * $8000-$97FF  Character RAM
+ * $4000-$7FFF  Cartridge ROM - Switchable Banks 1-xx
+ * $0150-$3FFF  Cartridge ROM - Bank 0 (fixed)
+ * $0100-$014F  Cartridge Header Area
+ * $0000-$00FF  Restart and Interrupt Vectors
+ */
+
+var Mmu = function () {
+    function Mmu() {
+        var bios = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+
+        _classCallCheck(this, Mmu);
+
+        this._bios = new Uint8Array(bios);
+        this._biosDisabled = this._bios.length == 0;
+
+        // Mappings
+
+        this.video = null;
+        this.timer = null;
+        this.lcd = null;
+        this.gpu = null;
+        this.joypad = null;
+
+        // Memory Map
+
+        this._wram = new Uint8Array(0x2000);
+        this._io = new Uint8Array(0x80);
+        this._zram = new Uint8Array(0x7f);
+        this._cart = null;
+
+        this.if = 0;
+        this.ie = 0;
+    }
+
+    _createClass(Mmu, [{
+        key: 'init',
+        value: function init() {
+            this._biosDisabled = this._bios.length == 0;
+
+            this.if = 0;
+            this.ie = 0;
+        }
+    }, {
+        key: 'loadCart',
+        value: function loadCart(cart) {
+            this._cart = cart;
+        }
+    }, {
+        key: 'readByte',
+        value: function readByte(addr) {
+            addr &= 0xffff;
+
+            read('$%s', addr.toString(16));
+
+            switch (addr >> 12) {
+                case 0x0:
+                    if (!this._biosDisabled && addr < 0x100) {
+                        return this._bios[addr];
+                    }
+                case 0x1:case 0x2:
+                case 0x3:case 0x4:
+                case 0x5:case 0x6:
+                case 0x7:case 0xa:
+                case 0xb:
+                    return this._cart.readByte(addr);
+                case 0x8:case 0x9:
+                    return this.video.readByte(addr);
+                case 0xc:case 0xd:
+                    return this._wram[addr & 0x1fff];
+                case 0xe:case 0xf:
+                    if (addr == IE) return this.ie;
+                    if (addr == IF) return this.if;
+                    if (addr > 0xff7f) return this._zram[addr & 0x7f];
+                    if (addr > 0xfeff) {
+                        switch (addr & 0xff) {
+                            case 0:
+                                return this.joypad.readByte(addr);
+                            case 0x04:case 0x05:
+                            case 0x06:case 0x07:
+                                return this.timer.readByte(addr);
+                            case 0x40:case 0x42:
+                            case 0x43:case 0x47:
+                            case 0x48:case 0x49:
+                            case 0x4a:case 0x4b:
+                                return this.gpu.readByte(addr);
+                            case 0x41:case 0x44:
+                            case 0x45:
+                                return this.lcd.readByte(addr);
+                        }
+                        return this._io[addr & 0xff];
+                    }
+                    if (addr > 0xfe9f) return 0;
+                    if (addr > 0xfdff) return this.video.readByte(addr);
+                    return this._wram[addr & 0x1fff];
+            }
+
+            throw new Error('unmapped address 0x' + addr.toString(16));
+        }
+    }, {
+        key: 'readWord',
+        value: function readWord(addr) {
+            return this.readByte(addr) | this.readByte(addr + 1) << 8;
+        }
+    }, {
+        key: 'writeByte',
+        value: function writeByte(addr, val) {
+            addr &= 0xffff;
+            val &= 0xff;
+
+            write('$%s = 0x%s', addr.toString(16), val.toString(16));
+
+            if (process && process.env.TEST_ROM && addr == 0xff02 && val == 0x81) {
+                var char = String.fromCharCode(this.readByte(0xff01));
+                process.stdout.write(char);
+            }
+
+            switch (addr >> 12) {
+                case 0x0:case 0x1:
+                case 0x2:case 0x3:
+                case 0x4:case 0x5:
+                case 0x6:case 0x7:
+                case 0xa:case 0xb:
+                    return this._cart.writeByte(addr, val);
+                case 0x8:case 0x9:
+                    return this.video.writeByte(addr, val);
+                case 0xc:case 0xd:
+                    return this._wram[addr & 0x1fff] = val;
+                case 0xe:case 0xf:
+                    if (addr == IE) return this.ie = val;
+                    if (addr == IF) return this.if = val;
+                    if (addr > 0xff7f) return this._zram[addr & 0x7f] = val;
+                    if (addr > 0xfeff) {
+                        switch (addr & 0xff) {
+                            case 0:
+                                return this.joypad.writeByte(addr, val);
+                            case 0x04:case 0x05:
+                            case 0x06:case 0x07:
+                                return this.timer.writeByte(addr, val);
+                            case 0x40:case 0x42:
+                            case 0x43:case 0x47:
+                            case 0x48:case 0x49:
+                            case 0x4a:case 0x4b:
+                                return this.gpu.writeByte(addr, val);
+                            case 0x41:case 0x44:
+                            case 0x45:
+                                return this.lcd.writeByte(addr, val);
+                            case 0x46:
+                                this.video.transfer(this, val);
+                                break;
+                            case 0x50:
+                                this._biosDisabled = true;
+                                break;
+                        }
+                        return this._io[addr & 0xff] = val;
+                    }
+                    if (addr > 0xfe9f) return;
+                    if (addr > 0xfdff) return this.video.writeByte(addr, val);
+                    return this._wram[addr & 0x1fff] = val;
+            }
+
+            throw new Error('unmapped address 0x' + addr.toString(16));
+        }
+    }, {
+        key: 'writeWord',
+        value: function writeWord(addr, val) {
+            this.writeByte(addr, val);
+            this.writeByte(addr + 1, val >> 8);
+        }
+    }]);
+
+    return Mmu;
+}();
+
+module.exports = Mmu;
+
+}).call(this,require('_process'))
+},{"./registers":13,"_process":20,"debug":15}],13:[function(require,module,exports){
 'use strict';
 
 /**
@@ -4761,248 +4968,38 @@ exports.WX = 0xff4b;
  */
 exports.IE = 0xffff;
 
-},{}],15:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 'use strict';
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+function Canvas(width, height) {
+    if (typeof window !== 'undefined') {
+        var canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var _step = require('debug')('timer:step');
-var divider = require('debug')('timer:divider');
-var counter = require('debug')('timer:counter');
-
-var _require = require('./registers'),
-    DIV = _require.DIV,
-    TIMA = _require.TIMA,
-    TMA = _require.TMA,
-    TAC = _require.TAC;
-
-var _require2 = require('./interrupts'),
-    INT_50 = _require2.INT_50;
-
-var MAX_DIVIDER = 16384;
-
-// Timer Clock Select
-
-var CLOCK_SELECT = [];
-
-CLOCK_SELECT[0] = 4096; // 00: CPU Clock / 1024
-CLOCK_SELECT[1] = 262144; // 01: CPU Clock / 16
-CLOCK_SELECT[2] = 65536; // 10: CPU Clock / 64
-CLOCK_SELECT[3] = 16384; // 11: CPU Clock / 256
-
-
-var Timer = function () {
-    function Timer(mmu) {
-        _classCallCheck(this, Timer);
-
-        this._mmu = mmu;
-
-        // Registers
-
-        this._div = 0;
-        this._tima = 0;
-        this._tma = 0;
-        this._tac = 0;
-
-        // Timers
-
-        this._divider = MAX_DIVIDER;
-        this._t = CLOCK_SELECT[0];
+        return canvas;
     }
 
-    _createClass(Timer, [{
-        key: 'init',
-        value: function init() {
-            this._div = 0;
-            this._tima = 0;
-            this._tma = 0;
-            this._tac = 0;
+    return new (require('canvas'))(width, height);
+}
 
-            this._divider = MAX_DIVIDER;
-            this._t = CLOCK_SELECT[0];
-        }
-    }, {
-        key: 'step',
-        value: function step(cycles) {
-            _step('%d', cycles);
+module.exports = Canvas;
 
-            // Divider
+},{"canvas":17}],15:[function(require,module,exports){
+"use strict";
 
-            this._divider -= cycles;
-            if (this._divider <= 0) {
-                this._div = ++this._div & 0xff;
-                divider('0x%s', this._div.toString(16));
+module.exports = function () {
+  return function () {};
+};
 
-                this._divider += MAX_DIVIDER;
-            }
-
-            // Timer
-
-            if ((this._tac & 4) == 0) return;
-
-            this._t -= cycles;
-            if (this._t > 0) return;
-
-            this._tima = ++this._tima & 0xff;
-            if (this._tima == 0) {
-                this._tima = this._tma;
-                this._mmu.if |= INT_50;
-            }
-            counter('0x%s', this._tima.toString(16));
-
-            this._t += CLOCK_SELECT[this._tac & 3];
-        }
-    }, {
-        key: 'readByte',
-        value: function readByte(addr) {
-            switch (addr) {
-                case DIV:
-                    return this._div;
-                case TIMA:
-                    return this._tima;
-                case TMA:
-                    return this._tma;
-                case TAC:
-                    return this._tac;
-            }
-
-            throw new Error('unmapped address 0x' + addr.toString(16));
-        }
-    }, {
-        key: 'writeByte',
-        value: function writeByte(addr, val) {
-            switch (addr) {
-                case DIV:
-                    return this._div = 0;
-                case TIMA:
-                    return this._tima = val;
-                case TMA:
-                    return this._tma = val;
-                case TAC:
-                    return this._tac = val;
-            }
-
-            throw new Error('unmapped address 0x' + addr.toString(16));
-        }
-    }]);
-
-    return Timer;
-}();
-
-module.exports = Timer;
-
-},{"./interrupts":8,"./registers":14,"debug":5}],16:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 'use strict';
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+Number.prototype.signed = function () {
+    return this & 0x80 ? -((0xff & ~this) + 1) : this;
+};
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var dma = require('debug')('video:dma');
-
-var Video = function () {
-    function Video() {
-        _classCallCheck(this, Video);
-
-        this._ram = new Uint8Array(0x2000);
-        this._oam = new Uint8Array(0xa0);
-
-        this.bgMap = [new Array(0x400).fill(0), new Array(0x400).fill(0)];
-        this.tiles = this._initTiles(32 * 32);
-        this.sprites = this._initSprites(40);
-    }
-
-    _createClass(Video, [{
-        key: 'transfer',
-        value: function transfer(mmu, val) {
-            var start = (val & 0xff) << 8;
-
-            dma('transfer from 0x%s', start.toString(16));
-
-            for (var addr = start; addr < start + 0xa0; addr++) {
-                var data = mmu.readByte(addr);
-                var pos = addr & 0xff;
-
-                dma('copy $%s = 0x%s', addr.toString(16), data.toString(16));
-
-                this.sprites[pos >> 2][pos & 3] = data;
-                this._oam[pos] = data;
-            }
-        }
-    }, {
-        key: 'readByte',
-        value: function readByte(addr) {
-            switch (addr >> 12) {
-                case 0x8:case 0x9:
-                    return this._ram[addr & 0x1fff];
-                case 0xf:
-                    if (addr > 0xfe9f) break;
-                    if (addr > 0xfdff) return this._oam[addr & 0xff];
-            }
-
-            throw new Error('unmapped address 0x' + addr.toString(16));
-        }
-    }, {
-        key: 'writeByte',
-        value: function writeByte(addr, val) {
-            switch (addr >> 12) {
-                case 0x8:case 0x9:
-                    if (addr > 0x97ff) {
-                        this.bgMap[addr >> 10 & 1][addr & 0x3ff] = val;
-                    } else {
-                        var pos = addr & 0x1fff;
-                        var res = this._sumBytes(this._ram[pos - 1], val);
-                        this.tiles[pos >> 4][pos >> 1 & 7] = res;
-                    }
-                    return this._ram[addr & 0x1fff] = val;
-                case 0xf:
-                    if (addr > 0xfe9f) break;
-                    if (addr > 0xfdff) {
-                        var _pos = addr & 0xff;
-                        this.sprites[_pos >> 2][_pos & 3] = val;
-                        return this._oam[_pos] = val;
-                    }
-            }
-
-            throw new Error('unmapped address 0x' + addr.toString(16));
-        }
-    }, {
-        key: '_initTiles',
-        value: function _initTiles(length) {
-            var tiles = [];
-            for (var i = 0; i < length; i++) {
-                tiles[i] = [[0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0]];
-            }return tiles;
-        }
-    }, {
-        key: '_initSprites',
-        value: function _initSprites(length) {
-            var sprites = [];
-            for (var i = 0; i < length; i++) {
-                sprites[i] = [0, 0, 0, 0];
-            }return sprites;
-        }
-    }, {
-        key: '_sumBytes',
-        value: function _sumBytes(x, y) {
-            var line = [];
-            for (var b = 7; b > -1; b--) {
-                var val = x >> b & 1 | (y >> b & 1) << 1;
-                line[7 - b] = val;
-            }
-
-            return line;
-        }
-    }]);
-
-    return Video;
-}();
-
-module.exports = Video;
-
-},{"debug":5}],17:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 "use strict";
 
 },{}],18:[function(require,module,exports){
