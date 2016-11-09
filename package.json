@@ -1,6 +1,6 @@
 {
   "name": "node-gameboy",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "A Gameboy emulator written in JavaScript",
   "main": "lib/gameboy.js",
   "scripts": {
