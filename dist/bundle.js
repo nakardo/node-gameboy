@@ -4358,27 +4358,27 @@ ROM_SIZE[0x04] = 16;
 var RAM_SIZE = [];
 
 RAM_SIZE[0x00] = 0;
-RAM_SIZE[0x01] = 2;
-RAM_SIZE[0x02] = 8;
-RAM_SIZE[0x03] = 32;
+RAM_SIZE[0x01] = 1;
+RAM_SIZE[0x02] = 4;
+RAM_SIZE[0x03] = 16;
 
 var Cart = function () {
     function Cart(rom) {
         _classCallCheck(this, Cart);
 
-        var cart = new Uint8Array(rom);
+        var data = new Uint8Array(rom);
 
         // Cartridge Header
 
-        this._title = this._sliceToString(cart, 0x0134, 0x0143);
-        this._type = cart[0x0147];
-        this._romSize = cart[0x0148];
-        this._ramSize = cart[0x0149];
+        this._title = this._sliceToString(data, 0x0134, 0x0143);
+        this._type = data[0x0147];
+        this._romSize = data[0x0148];
+        this._ramSize = data[0x0149];
 
         // Memory Map
 
-        this._rom = new Uint8Array(cart, 0, 0x8000 * ROM_SIZE[this._romSize]);
-        this._ram = new Uint8Array(0x800 * RAM_SIZE[this._ramSize]);
+        this._rom = new Uint8Array(data, 0, 0x8000 * ROM_SIZE[this._romSize]);
+        this._ram = new Uint8Array(0x2000 * RAM_SIZE[this._ramSize]);
 
         // MBC
 
@@ -4418,11 +4418,14 @@ var Cart = function () {
                     return this._ramEnabled = (val & 0xf) == 0xa;
                 case 0x2:case 0x3:
                     val &= 0x1f;
-                    return this._romBank = (val & 0xf) == 0 ? val++ : val;
+                    if (val == 0) val = 1;
+                    this._romBank &= 0x60;
+                    return this._romBank |= val;
                 case 0x4:case 0x5:
                     val &= 3;
                     if (this._mode == 1) return this._ramBank = val;
-                    return this._romBank |= val << 5;
+                    this._romBank &= 0x1f;
+                // return this._romBank |= val << 5;
                 case 0x6:case 0x7:
                     return this._mode = val & 1;
                 case 0xa:case 0xb:
