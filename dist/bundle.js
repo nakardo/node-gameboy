@@ -3900,10 +3900,8 @@ var Gpu = function (_EventEmitter) {
             var height = this._lcdc & 4 ? 16 : 8;
             var count = 0;
 
-            var sprites = this._video.sprites.sort(function (a, b) {
-                return a[1] - b[1];
-            });
-            for (var i = sprites.length - 1; i > -1; i--) {
+            var sprites = this._video.sprites;
+            for (var i = 0; i < sprites.length; i++) {
                 var sprite = sprites[i];
 
                 // Position
@@ -3913,7 +3911,7 @@ var Gpu = function (_EventEmitter) {
 
                 if (!(line >= sy && line < sy + height)) continue;
                 if (sx >= FRAME_WIDTH || sy >= FRAME_HEIGHT) continue;
-                if (++count > 10) continue;
+                if (count++ > 9) continue;
 
                 // Tile/Pattern Number
 
@@ -4422,20 +4420,19 @@ var Cart = function () {
                         if ((val & 0x1f) == 0) val |= 1;
 
                         var bank = this._romBank & 0x60 | val;
-                        bank &= this._romSize * 8 - 1;
+                        var masked = bank & ROM_SIZE[this._romSize] * 2 - 1;
 
-                        return this._romBank = bank;
+                        return this._romBank = masked;
                     }
                 case 0x4:case 0x5:
                     {
                         val &= 3;
-                        if (this._mode == 1) {
-                            return this._ramBank = val;
-                        }
-                        var _bank = this._romBank & 0x1f | val << 5;
-                        _bank &= this._romSize * 8 - 1;
+                        if (this._mode == 1) return this._ramBank = val;
 
-                        return this._romBank = _bank;
+                        var _bank = this._romBank & 0x1f | val << 5;
+                        var _masked = _bank & ROM_SIZE[this._romSize] * 2 - 1;
+
+                        return this._romBank = _masked;
                     }
                 case 0x6:case 0x7:
                     return this._mode = val & 1;
