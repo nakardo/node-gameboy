@@ -24,4 +24,8 @@
 - Timers: http://gbdev.gg8.se/wiki/articles/Timer_and_Divider_Registers
 - Joypad: http://www.inf.ufrgs.br/~gozardo/gameboy-gamepad/index.html
 - LY (FF44): http://www.romhacking.net/forum/index.php?topic=17770.0
-- Games List: http://www.ladecadence.net/trastero/listado%20juegos%20gameboy.html
+
+## Games Lists
+
+- http://www.ladecadence.net/trastero/listado%20juegos%20gameboy.html
+- http://www.devrs.com/gb/files/gbmbcsiz.txt
