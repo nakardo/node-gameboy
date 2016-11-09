@@ -53,12 +53,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/dmacosta/node-gameboy.git"
+    "url": "git+https://github.com/nakardo/node-gameboy.git"
   },
   "bugs": {
-    "url": "https://github.com/dmacosta/node-gameboy/issues"
+    "url": "https://github.com/nakardo/node-gameboy/issues"
   },
-  "homepage": "https://github.com/dmacosta/node-gameboy#readme",
+  "homepage": "https://github.com/nakardo/node-gameboy#readme",
   "engines": {
     "node": ">=6"
   },
