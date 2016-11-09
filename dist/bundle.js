@@ -4417,15 +4417,26 @@ var Cart = function () {
                 case 0x0:case 0x1:
                     return this._ramEnabled = (val & 0xf) == 0xa;
                 case 0x2:case 0x3:
-                    val &= 0x1f;
-                    if (val == 0) val = 1;
-                    this._romBank &= 0x60;
-                    return this._romBank |= val;
+                    {
+                        val &= 0x1f;
+                        if ((val & 0x1f) == 0) val |= 1;
+
+                        var bank = this._romBank & 0x60 | val;
+                        bank &= this._romSize * 8 - 1;
+
+                        return this._romBank = bank;
+                    }
                 case 0x4:case 0x5:
-                    val &= 3;
-                    if (this._mode == 1) return this._ramBank = val;
-                    this._romBank &= 0x1f;
-                // return this._romBank |= val << 5;
+                    {
+                        val &= 3;
+                        if (this._mode == 1) {
+                            return this._ramBank = val;
+                        }
+                        var _bank = this._romBank & 0x1f | val << 5;
+                        _bank &= this._romSize * 8 - 1;
+
+                        return this._romBank = _bank;
+                    }
                 case 0x6:case 0x7:
                     return this._mode = val & 1;
                 case 0xa:case 0xb:
