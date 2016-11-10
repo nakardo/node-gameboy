@@ -3898,10 +3898,11 @@ var Gpu = function (_EventEmitter) {
         key: '_drawSprites',
         value: function _drawSprites(line) {
             var height = this._lcdc & 4 ? 16 : 8;
-            var count = 0;
+            var sprites = this._video.sprites.slice().sort(function (a, b) {
+                return a[1] - b[1];
+            });
 
-            var sprites = this._video.sprites;
-            for (var i = 0; i < sprites.length; i++) {
+            for (var i = sprites.length - 1; i > -1; i--) {
                 var sprite = sprites[i];
 
                 // Position
@@ -3910,8 +3911,7 @@ var Gpu = function (_EventEmitter) {
                 var sx = sprite[1] - 8;
 
                 if (!(line >= sy && line < sy + height)) continue;
-                if (sx >= FRAME_WIDTH || sy >= FRAME_HEIGHT) continue;
-                if (count++ > 9) continue;
+                if (sx >= FRAME_WIDTH) continue;
 
                 // Tile/Pattern Number
 
@@ -3931,7 +3931,7 @@ var Gpu = function (_EventEmitter) {
                 var py = yflip ? height - 1 - (line - sy) : line - sy;
                 var data = this._data;
 
-                for (var x = sx; x < sx + 8; x++) {
+                for (var x = sx; x < sx + 8 && x < FRAME_WIDTH; x++) {
                     if (x < 0) continue;
 
                     var offset = (line * FRAME_WIDTH + x) * 4;
