@@ -1,70 +1,4 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-'use strict';
-
-var Gameboy = require('../');
-
-localStorage.debug = '';
-
-var gameboy = new Gameboy();
-
-// Render
-
-var canvas = document.getElementById('frame');
-var ctx = canvas.getContext('2d');
-
-gameboy.gpu.on('frame', function (offcanvas) {
-    ctx.drawImage(offcanvas, 0, 0);
-});
-
-// Buttons
-
-var inputAction = document.getElementById('input');
-var pauseAction = document.getElementById('pause');
-var resetAction = document.getElementById('reset');
-
-function loadFile() {
-    if (!this.files.length) return;
-
-    var reader = new FileReader();
-    reader.onloadend = function () {
-        gameboy.loadCart(reader.result);
-        gameboy.start();
-    };
-    reader.readAsArrayBuffer(this.files[0]);
-}
-
-inputAction.addEventListener('change', loadFile);
-pauseAction.addEventListener('click', function () {
-    return gameboy.pauseResume();
-});
-resetAction.addEventListener('click', function () {
-    return gameboy.reset();
-});
-
-var renderingAction = document.getElementById('rendering');
-var scaleAction = document.getElementById('scale');
-
-renderingAction.addEventListener('click', function () {
-    $(canvas).toggleClass('pixelated');
-});
-
-var sizes = ['160px', '320px', '640px'];
-
-scaleAction.addEventListener('click', function () {
-    var idx = sizes.indexOf(canvas.style.width || '320px');
-    canvas.style.width = sizes[++idx % 3];
-});
-
-// Joypad
-
-document.addEventListener('keydown', function (e) {
-    return gameboy.joypad.keyDown(e.keyCode);
-});
-document.addEventListener('keyup', function (e) {
-    return gameboy.joypad.keyUp(e.keyCode);
-});
-
-},{"../":5}],2:[function(require,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Gameboy = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 'use strict';
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
@@ -343,7 +277,7 @@ var Cpu = function () {
 
 module.exports = Cpu;
 
-},{"../interrupts":9,"./opcodes":3,"debug":15,"raf":21}],3:[function(require,module,exports){
+},{"../interrupts":8,"./opcodes":2,"debug":14,"raf":20}],2:[function(require,module,exports){
 'use strict';
 
 require('../util/number');
@@ -3407,7 +3341,7 @@ $[0xd9] = ['RETI', function (cpu, mmu) {
     return 16;
 }];
 
-},{"../util/number":16}],4:[function(require,module,exports){
+},{"../util/number":15}],3:[function(require,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -3539,7 +3473,7 @@ var Timer = function () {
 
 module.exports = Timer;
 
-},{"../interrupts":9,"../registers":13,"debug":15}],5:[function(require,module,exports){
+},{"../interrupts":8,"../registers":12,"debug":14}],4:[function(require,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -3685,7 +3619,7 @@ var Gameboy = function () {
 
 module.exports = Gameboy;
 
-},{"./cpu/cpu":2,"./cpu/timer":4,"./gpu/gpu":6,"./gpu/lcd":7,"./gpu/video":8,"./io/cart":10,"./io/joypad":11,"./mmu":12}],6:[function(require,module,exports){
+},{"./cpu/cpu":1,"./cpu/timer":3,"./gpu/gpu":5,"./gpu/lcd":6,"./gpu/video":7,"./io/cart":9,"./io/joypad":10,"./mmu":11}],5:[function(require,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -3972,7 +3906,7 @@ var Gpu = function (_EventEmitter) {
 
 module.exports = Gpu;
 
-},{"../registers":13,"../shims/canvas":14,"../util/number":16,"debug":15,"events":18}],7:[function(require,module,exports){
+},{"../registers":12,"../shims/canvas":13,"../util/number":15,"debug":14,"events":17}],6:[function(require,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -4120,7 +4054,7 @@ var Lcd = function () {
 
 module.exports = Lcd;
 
-},{"../interrupts":9,"../registers":13,"debug":15}],8:[function(require,module,exports){
+},{"../interrupts":8,"../registers":12,"debug":14}],7:[function(require,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -4229,7 +4163,7 @@ var Video = function () {
 
 module.exports = Video;
 
-},{"debug":15}],9:[function(require,module,exports){
+},{"debug":14}],8:[function(require,module,exports){
 'use strict';
 
 /**
@@ -4286,7 +4220,7 @@ exports.INT_58 = 1 << 3;
  */
 exports.INT_60 = 1 << 4;
 
-},{}],10:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 'use strict';
 
 /**
@@ -4480,7 +4414,7 @@ var Cart = function () {
 
 module.exports = Cart;
 
-},{}],11:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -4571,7 +4505,7 @@ var Joypad = function () {
 
 module.exports = Joypad;
 
-},{"../interrupts":9,"../registers":13,"debug":15}],12:[function(require,module,exports){
+},{"../interrupts":8,"../registers":12,"debug":14}],11:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -4777,7 +4711,7 @@ var Mmu = function () {
 module.exports = Mmu;
 
 }).call(this,require('_process'))
-},{"./registers":13,"_process":20,"debug":15}],13:[function(require,module,exports){
+},{"./registers":12,"_process":19,"debug":14}],12:[function(require,module,exports){
 'use strict';
 
 /**
@@ -4993,7 +4927,7 @@ exports.WX = 0xff4b;
  */
 exports.IE = 0xffff;
 
-},{}],14:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 'use strict';
 
 function Canvas(width, height) {
@@ -5010,24 +4944,24 @@ function Canvas(width, height) {
 
 module.exports = Canvas;
 
-},{"canvas":17}],15:[function(require,module,exports){
+},{"canvas":16}],14:[function(require,module,exports){
 "use strict";
 
 module.exports = function () {
   return function () {};
 };
 
-},{}],16:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 'use strict';
 
 Number.prototype.signed = function () {
     return this & 0x80 ? -((0xff & ~this) + 1) : this;
 };
 
-},{}],17:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 "use strict";
 
-},{}],18:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -5331,7 +5265,7 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],19:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 (function (process){
 // Generated by CoffeeScript 1.7.1
 (function() {
@@ -5367,7 +5301,7 @@ function isUndefined(arg) {
 }).call(this);
 
 }).call(this,require('_process'))
-},{"_process":20}],20:[function(require,module,exports){
+},{"_process":19}],19:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -5549,7 +5483,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],21:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 (function (global){
 var now = require('performance-now')
   , root = typeof window === 'undefined' ? global : window
@@ -5625,4 +5559,5 @@ module.exports.polyfill = function() {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"performance-now":19}]},{},[1]);
+},{"performance-now":18}]},{},[4])(4)
+});

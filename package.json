@@ -4,10 +4,10 @@
   "description": "A Gameboy emulator written in JavaScript",
   "main": "lib/gameboy.js",
   "scripts": {
-    "build": "browserify examples/web.js -o dist/bundle.js",
-    "build-min": "browserify examples/web.js | uglifyjs -cm > dist/bundle.min.js",
+    "build": "browserify lib/gameboy.js -s Gameboy > dist/gameboy.js",
+    "build-min": "browserify lib/gameboy.js -s Gameboy | uglifyjs -cm > dist/gameboy.min.js",
     "build-all": "npm run build && npm run build-min",
-    "watch": "watchify examples/web.js -o dist/bundle.js",
+    "watch": "watchify lib/gameboy.js > dist/gameboy.js",
     "prepublish": "npm run build"
   },
   "keywords": [
