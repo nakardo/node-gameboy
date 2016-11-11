@@ -7,6 +7,15 @@ localStorage.debug = '';
 
 var gameboy = new Gameboy();
 
+// Render
+
+var canvas = document.getElementById('frame');
+var ctx = canvas.getContext('2d');
+
+gameboy.gpu.on('frame', function (offcanvas) {
+    ctx.drawImage(offcanvas, 0, 0);
+});
+
 // Buttons
 
 var inputAction = document.getElementById('input');
@@ -32,6 +41,20 @@ resetAction.addEventListener('click', function () {
     return gameboy.reset();
 });
 
+var renderingAction = document.getElementById('rendering');
+var scaleAction = document.getElementById('scale');
+
+renderingAction.addEventListener('click', function () {
+    $(canvas).toggleClass('pixelated');
+});
+
+var sizes = ['160px', '320px', '640px'];
+
+scaleAction.addEventListener('click', function () {
+    var idx = sizes.indexOf(canvas.style.width || '320px');
+    canvas.style.width = sizes[++idx % 3];
+});
+
 // Joypad
 
 document.addEventListener('keydown', function (e) {
@@ -39,15 +62,6 @@ document.addEventListener('keydown', function (e) {
 });
 document.addEventListener('keyup', function (e) {
     return gameboy.joypad.keyUp(e.keyCode);
-});
-
-// Render
-
-var canvas = document.getElementById('frame');
-var ctx = canvas.getContext('2d');
-
-gameboy.gpu.on('frame', function (offcanvas) {
-    ctx.drawImage(offcanvas, 0, 0);
 });
 
 },{"../":5}],2:[function(require,module,exports){
