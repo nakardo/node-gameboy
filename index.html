@@ -1,23 +1,28 @@
 <html>
 <head>
     <title>node-gameboy</title>
-    <meta name="viewport" content="user-scalable=no, width=device-width">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script
+        src="https://code.jquery.com/jquery-3.1.1.slim.min.js"
+        integrity="sha256-/SIrNqv8h6QGKDuNoLGA4iret+kyesCkHGzVUUV0shc="
+        crossorigin="anonymous"></script>
     <style>
         body {
+            color: white;
+            background-color: black;
             text-align: center;
         }
         canvas {
+            width: 320px;
+            border: 1px solid white;
+        }
+        canvas.pixelated {
           image-rendering: optimizeSpeed;             /* Older versions of FF          */
           image-rendering: -moz-crisp-edges;          /* FF 6.0+                       */
           image-rendering: -webkit-optimize-contrast; /* Safari                        */
           image-rendering: -o-crisp-edges;            /* OS X & Windows Opera (12.02+) */
           image-rendering: pixelated;                 /* Awesome future-browsers       */
           -ms-interpolation-mode: nearest-neighbor;   /* IE                            */
-        }
-        #frame {
-            height: 320px;
-            padding: 1px;
-            border: 1px solid black;
         }
         #action-buttons {
             margin-top: 10px;
@@ -28,6 +33,8 @@
     <canvas id="frame" width="160" height="144"></canvas>
     <div id="action-buttons">
         <input id="input" type="file" accept=".gb"></input>
+        <button id="scale">Change Scale</button>
+        <button id="rendering">Rendering Mode</button>
         <button id="pause">Pause / Resume</button>
         <button id="reset">Reset</button>
     </div>
