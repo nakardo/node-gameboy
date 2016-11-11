@@ -6,7 +6,7 @@ A Gameboy emulator written in JavaScript
 
 ## About
 
-This is a WIP project, some games are playable though some artifacts and crashes
+This is a WIP project, most games are playable though some artifacts and crashes
 may happen. Emulator can be run either on web browsers or server side. 
 
 ## Online Build
