@@ -2,6 +2,7 @@
 
 ## General
 
+- http://imrannazar.com/GameBoy-Emulation-in-JavaScript:-The-CPU
 - http://fms.komkon.org/GameBoy/Tech/Software.html
 - http://bgb.bircd.org/pandocs.htm
 - https://www.cl.cam.ac.uk/~pv273/slides/emulation.pdf
