@@ -1,4 +1,4 @@
-var gameboy = new (window.Gameboy)();
+var gameboy = window.gameboy = new (window.Gameboy)();
 
 // localStorage.debug = '';
 
