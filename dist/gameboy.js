@@ -20,14 +20,11 @@ var _require = require('../interrupts'),
     INT_58 = _require.INT_58,
     INT_60 = _require.INT_60;
 
-var MAX_CYCLES = 70224;
-
 var Cpu = function () {
-    function Cpu(mmu, gpu, timer, lcd) {
+    function Cpu(mmu, timer, lcd) {
         _classCallCheck(this, Cpu);
 
         this._mmu = mmu;
-        this._gpu = gpu;
         this._timer = timer;
         this._lcd = lcd;
 
@@ -90,15 +87,15 @@ var Cpu = function () {
         key: '_step',
         value: function _step() {
             var frameCycles = 0;
+            var t = 0;
 
-            while (frameCycles < MAX_CYCLES) {
-                var cycles = this._runCycle();
+            while (frameCycles < 70224) {
+                var cycles = this._runCycle() + t;
                 this._timer.step(cycles);
                 this._lcd.step(cycles);
-                this._handleInterrupts();
+                t = this._handleInterrupts();
                 frameCycles += cycles;
             }
-            this._gpu.render();
         }
     }, {
         key: '_runCycle',
@@ -127,10 +124,10 @@ var Cpu = function () {
              * 0 - Disable all Interrupts
              * 1 - Enable all Interrupts that are enabled in IE Register (FFFF)
              */
-            if (!this.ime) return;
+            if (!this.ime) return 0;
 
             var flags = this._mmu.ie & this._mmu.if;
-            if (flags == 0) return;
+            if (flags == 0) return 0;
 
             int('flags 0b%s', flags.toString(2));
 
@@ -147,10 +144,12 @@ var Cpu = function () {
                 this._mmu.if &= ~INT_60;addr = 0x60;
             }
 
+            this.ime = false;
+
             this._mmu.writeWord(this._sp -= 2, this._pc);
             this._pc = addr;
 
-            this.ime = false;
+            return 16;
         }
     }, {
         key: 'a',
@@ -3499,7 +3498,7 @@ var Gameboy = function () {
         var gpu = new Gpu(video);
         var timer = new Timer(mmu);
         var lcd = new Lcd(mmu, gpu);
-        var cpu = new Cpu(mmu, gpu, timer, lcd);
+        var cpu = new Cpu(mmu, timer, lcd);
         var joypad = new Joypad(mmu);
 
         this._timer = timer;
@@ -3925,8 +3924,6 @@ var _require2 = require('../interrupts'),
     INT_40 = _require2.INT_40,
     INT_48 = _require2.INT_48;
 
-var MAX_CYCLES = 456;
-
 var Lcd = function () {
     function Lcd(mmu, gpu) {
         _classCallCheck(this, Lcd);
@@ -3942,7 +3939,7 @@ var Lcd = function () {
 
         // Timer
 
-        this._t = MAX_CYCLES;
+        this._t = 0;
     }
 
     _createClass(Lcd, [{
@@ -3952,72 +3949,98 @@ var Lcd = function () {
             this._ly = 0;
             this._lyc = 0;
 
-            this._t = MAX_CYCLES;
+            this._t = 0;
         }
     }, {
         key: 'step',
         value: function step(cycles) {
             _step('%d', cycles);
 
-            this._t -= cycles;
+            this._t += cycles;
 
             /**
              * Mode Flag
              *
-             * Mode 0 is present between 201-207 clks, 2 about 77-83 clks, and
-             * 3 about 169-175 clks. A complete cycle through these states takes
-             * 456 clks. VBlank lasts 4560 clks. A complete screen refresh
-             * occurs every 70224 clks.
+             * The two lower STAT bits show the current status of the LCD
+             * controller.
+             *
+             * Mode 0: The LCD controller is in the H-Blank period and
+             *         the CPU can access both the display RAM (8000h-9FFFh)
+             *         and OAM (FE00h-FE9Fh)
+             *
+             * Mode 1: The LCD contoller is in the V-Blank period (or the
+             *         display is disabled) and the CPU can access both the
+             *         display RAM (8000h-9FFFh) and OAM (FE00h-FE9Fh)
+             *
+             * Mode 2: The LCD controller is reading from OAM memory.
+             *         The CPU <cannot> access OAM memory (FE00h-FE9Fh)
+             *         during this period.
+             *
+             * Mode 3: The LCD controller is reading from both OAM and VRAM,
+             *         The CPU <cannot> access OAM and VRAM during this period.
+             *         CGB Mode: Cannot access Palette Data (FF69,FF6B) either.
+             *
+             * The following are typical when the display is enabled:
+             * Mode 2  2_____2_____2_____2_____2_____2___________________2____
+             * Mode 3  _33____33____33____33____33____33__________________3___
+             * Mode 0  ___000___000___000___000___000___000________________000
+             * Mode 1  ____________________________________11111111111111_____
+             *
+             * The Mode Flag goes through the values 0, 2, and 3 at a cycle of
+             * about 109uS. 0 is present about 48.6uS, 2 about 19uS, and 3 about
+             * 41uS. This is interrupted every 16.6ms by the VBlank (1). The mode
+             * flag stays set at 1 for about 1.08 ms.
+             *
+             * Mode 0 is present between 201-207 clks, 2 about 77-83 clks, and 3
+             * about 169-175 clks. A complete cycle through these states takes 456
+             * clks. VBlank lasts 4560 clks. A complete screen refresh occurs every
+             * 70224 clks.)
              */
-            var mode = 0;
 
-            if (this._ly < 144) {
-                if (this._t > 376) mode = 2;else if (this._t > 204) mode = 3;
-            } else if (this._ly < 154) mode = 1;
+            var mode = this._stat & 3;
 
-            if (mode != (this._stat & 3)) {
-                this._stat &= ~3;
-                this._stat |= mode;
+            switch (mode) {
+                case 2:
+                    if (this._t >= 80) {
+                        this._t -= 80;
+                        this._changeMode(3);
+                    }
+                    break;
+                case 3:
+                    if (this._t >= 172) {
+                        this._t -= 172;
+                        this._changeMode(0);
+                        this._gpu.drawLine(this._ly);
+                    }
+                    break;
+                case 0:
+                    if (this._t >= 204) {
+                        this._t -= 204;
+                        this._ly++;
+                        this._checkCoincidence();
 
-                var intf = false;
-                switch (mode) {
-                    case 0:
-                        if (this._stat & 8) intf = true;break;
-                    case 2:
-                        if (this._stat & 0x10) intf = true;
-                    case 1:
-                        if (this._stat & 0x20) intf = true;
-                }
+                        if (this._ly == 144) {
+                            this._changeMode(1);
+                            this._mmu.if |= INT_40;
+                            this._gpu.render();
+                        } else this._changeMode(2);
+                    }
+                    break;
+                case 1:
+                    if (this._t >= 456) {
+                        this._t -= 456;
+                        this._ly++;
 
-                if (intf) this._mmu.if |= INT_48;
+                        if (this._ly > 153) {
+                            this._ly = 0;
+                            this._changeMode(2);
+                        }
+                        this._checkCoincidence();
+                    }
+                    break;
             }
 
-            if (this._t > 0) return;
-
-            stat('mode=%d; ly=%d; 0b%s', mode, this._ly, this._stat.toString(2));
-
-            // V-Blank
-
-            if (this._ly == 144) this._mmu.if |= INT_40;
-
-            // Draw
-
-            if (this._ly < 144) this._gpu.drawLine(this._ly);
-
-            if (this._ly < 153) {
-                this._t += MAX_CYCLES;
-                this._ly++;
-            } else {
-                this._t = MAX_CYCLES;
-                this._ly = 0;
-            }
-
-            // Coincidence line
-
-            if (this._ly == this._lyc) {
-                this._stat |= 1 << 2;
-                if (this._stat & 0x40) this._mmu.if |= INT_48;
-            } else this._stat &= ~(1 << 2);
+            stat('mode=%d; ly=%d', this._stat & 3, this._ly);
         }
     }, {
         key: 'readByte',
@@ -4038,7 +4061,7 @@ var Lcd = function () {
         value: function writeByte(addr, val) {
             switch (addr) {
                 case STAT:
-                    return this._stat |= val & 0x78;
+                    return this._stat = this._stat & ~0x78 | val & 0xf8;
                 case LY:
                     return this._ly = 0;
                 case LYC:
@@ -4046,6 +4069,31 @@ var Lcd = function () {
             }
 
             throw new Error('unmapped address 0x' + addr.toString(16));
+        }
+    }, {
+        key: '_changeMode',
+        value: function _changeMode(mode) {
+            var intf = false;
+
+            switch (mode) {
+                case 0:
+                    if (this._stat & 8) intf = true;break;
+                case 1:
+                    if (this._stat & 0x10) intf = true;break;
+                case 2:
+                    if (this._stat & 0x20) intf = true;break;
+            }
+            if (intf) this._mmu.if |= INT_48;
+
+            this._stat = this._stat & ~3 | mode;
+        }
+    }, {
+        key: '_checkCoincidence',
+        value: function _checkCoincidence() {
+            if (this._lyc == this._ly) {
+                this._stat |= 1 << 2;
+                if (this._stat & 0x40) this._mmu.if |= INT_48;
+            } else this._stat &= ~(1 << 2);
         }
     }]);
 
