@@ -8,7 +8,7 @@
     "build-min": "browserify lib/gameboy.js -s Gameboy | uglifyjs -cm > dist/gameboy.min.js",
     "build-all": "npm run build && npm run build-min",
     "watch": "watchify lib/gameboy.js > dist/gameboy.js",
-    "prepublish": "npm run build"
+    "prepublish": "npm run build-all"
   },
   "keywords": [
     "gameboy",
