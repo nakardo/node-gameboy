@@ -7,11 +7,16 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
 var debug = require('debug')('gameboy:cpu');
 var cycle = require('debug')('gameboy:cpu:cycle');
 var int = require('debug')('gameboy:cpu:int');
 var raf = require('raf');
 var opcodes = require('./opcodes');
+var Serializable = require('../util/serializable');
 
 var _require = require('../interrupts'),
     INT_40 = _require.INT_40,
@@ -20,33 +25,40 @@ var _require = require('../interrupts'),
     INT_58 = _require.INT_58,
     INT_60 = _require.INT_60;
 
-var Cpu = function () {
+var exclude = ['_mmu', '_timer', '_lcd', '_loop'];
+
+var Cpu = function (_Serializable) {
+    _inherits(Cpu, _Serializable);
+
     function Cpu(mmu, timer, lcd) {
         _classCallCheck(this, Cpu);
 
-        this._mmu = mmu;
-        this._timer = timer;
-        this._lcd = lcd;
+        var _this = _possibleConstructorReturn(this, (Cpu.__proto__ || Object.getPrototypeOf(Cpu)).call(this));
+
+        _this._mmu = mmu;
+        _this._timer = timer;
+        _this._lcd = lcd;
 
         // Gameloop
 
-        this._loop = null;
+        _this._loop = null;
 
         // Interrupt Master Enable
 
-        this.ime = false;
+        _this.ime = false;
 
         // 8-bit registers
 
-        this._a = 0;this._f = 0;
-        this._b = 0;this._c = 0;
-        this._d = 0;this._e = 0;
-        this._h = 0;this._l = 0;
+        _this._a = 0;_this._f = 0;
+        _this._b = 0;_this._c = 0;
+        _this._d = 0;_this._e = 0;
+        _this._h = 0;_this._l = 0;
 
         // 16-bit registers
 
-        this._sp = 0;
-        this._pc = 0;
+        _this._sp = 0;
+        _this._pc = 0;
+        return _this;
     }
 
     // 8-bit registers
@@ -67,13 +79,13 @@ var Cpu = function () {
     }, {
         key: 'start',
         value: function start() {
-            var _this = this;
+            var _this2 = this;
 
             debug('start');
 
             var tick = function tick() {
-                _this._step();
-                _this._loop = raf(tick);
+                _this2._step();
+                _this2._loop = raf(tick);
             };
             this._loop = raf(tick);
         }
@@ -272,11 +284,11 @@ var Cpu = function () {
     }]);
 
     return Cpu;
-}();
+}(Serializable({ exclude: exclude }));
 
 module.exports = Cpu;
 
-},{"../interrupts":8,"./opcodes":2,"debug":14,"raf":20}],2:[function(require,module,exports){
+},{"../interrupts":8,"../util/serializable":16,"./opcodes":2,"debug":14,"raf":21}],2:[function(require,module,exports){
 'use strict';
 
 require('../util/number');
@@ -3347,9 +3359,14 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
 var _step = require('debug')('gameboy:timer:step');
 var divider = require('debug')('gameboy:timer:divider');
 var counter = require('debug')('gameboy:timer:counter');
+var Serializable = require('../util/serializable');
 
 var _require = require('../registers'),
     DIV = _require.DIV,
@@ -3372,23 +3389,28 @@ CLOCK_SELECT[2] = 65536; // 10: CPU Clock / 64
 CLOCK_SELECT[3] = 16384; // 11: CPU Clock / 256
 
 
-var Timer = function () {
+var Timer = function (_Serializable) {
+    _inherits(Timer, _Serializable);
+
     function Timer(mmu) {
         _classCallCheck(this, Timer);
 
-        this._mmu = mmu;
+        var _this = _possibleConstructorReturn(this, (Timer.__proto__ || Object.getPrototypeOf(Timer)).call(this));
+
+        _this._mmu = mmu;
 
         // Registers
 
-        this._div = 0;
-        this._tima = 0;
-        this._tma = 0;
-        this._tac = 0;
+        _this._div = 0;
+        _this._tima = 0;
+        _this._tma = 0;
+        _this._tac = 0;
 
         // Timers
 
-        this._divider = MAX_DIVIDER;
-        this._t = CLOCK_SELECT[0];
+        _this._divider = MAX_DIVIDER;
+        _this._t = CLOCK_SELECT[0];
+        return _this;
     }
 
     _createClass(Timer, [{
@@ -3468,16 +3490,20 @@ var Timer = function () {
     }]);
 
     return Timer;
-}();
+}(Serializable({ exclude: ['_mmu'] }));
 
 module.exports = Timer;
 
-},{"../interrupts":8,"../registers":12,"debug":14}],4:[function(require,module,exports){
+},{"../interrupts":8,"../registers":12,"../util/serializable":16,"debug":14}],4:[function(require,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var Video = require('./gpu/video');
 var Timer = require('./cpu/timer');
@@ -3486,11 +3512,17 @@ var Mmu = require('./mmu');
 var Gpu = require('./gpu/gpu');
 var Cpu = require('./cpu/cpu');
 var Joypad = require('./io/joypad');
-var Cart = require('./io/cart');
+var Serializable = require('./util/serializable');
 
-var Gameboy = function () {
+var exclude = ['_joypad', '_useBios', '_isRunning'];
+
+var Gameboy = function (_Serializable) {
+    _inherits(Gameboy, _Serializable);
+
     function Gameboy(bios) {
         _classCallCheck(this, Gameboy);
+
+        var _this = _possibleConstructorReturn(this, (Gameboy.__proto__ || Object.getPrototypeOf(Gameboy)).call(this));
 
         var mmu = new Mmu(bios);
 
@@ -3501,12 +3533,12 @@ var Gameboy = function () {
         var cpu = new Cpu(mmu, timer, lcd);
         var joypad = new Joypad(mmu);
 
-        this._timer = timer;
-        this._lcd = lcd;
-        this._mmu = mmu;
-        this._gpu = gpu;
-        this._cpu = cpu;
-        this._joypad = joypad;
+        _this._timer = timer;
+        _this._lcd = lcd;
+        _this._mmu = mmu;
+        _this._gpu = gpu;
+        _this._cpu = cpu;
+        _this._joypad = joypad;
 
         // Mappings
 
@@ -3518,11 +3550,12 @@ var Gameboy = function () {
 
         // Use Bootstrap
 
-        this._useBios = bios && bios.length > 0;
+        _this._useBios = bios && bios.length > 0;
 
         // Gameloop
 
-        this._isRunning = true;
+        _this._isRunning = false;
+        return _this;
     }
 
     _createClass(Gameboy, [{
@@ -3530,7 +3563,7 @@ var Gameboy = function () {
         value: function loadCart(rom) {
             this._isRunning = false;
             this._cpu.stop();
-            this._mmu.loadCart(new Cart(rom));
+            this._mmu.loadCart(rom);
         }
     }, {
         key: 'start',
@@ -3614,11 +3647,11 @@ var Gameboy = function () {
     }]);
 
     return Gameboy;
-}();
+}(Serializable({ exclude: exclude }));
 
 module.exports = Gameboy;
 
-},{"./cpu/cpu":1,"./cpu/timer":3,"./gpu/gpu":5,"./gpu/lcd":6,"./gpu/video":7,"./io/cart":9,"./io/joypad":10,"./mmu":11}],5:[function(require,module,exports){
+},{"./cpu/cpu":1,"./cpu/timer":3,"./gpu/gpu":5,"./gpu/lcd":6,"./gpu/video":7,"./io/joypad":10,"./mmu":11,"./util/serializable":16}],5:[function(require,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -3633,6 +3666,7 @@ var _render = require('debug')('gameboy:gpu:render');
 var control = require('debug')('gameboy:gpu:control');
 var EventEmitter = require('events').EventEmitter;
 var Canvas = require('../shims/canvas');
+var Serializable = require('../util/serializable');
 
 var _require = require('../registers'),
     LCDC = _require.LCDC,
@@ -3658,8 +3692,10 @@ GRAY_SHADES[3] = [0, 0, 0];
 var FRAME_WIDTH = 160;
 var FRAME_HEIGHT = 144;
 
-var Gpu = function (_EventEmitter) {
-    _inherits(Gpu, _EventEmitter);
+var include = ['_lcdc', '_scy', '_scx', '_wy', '_wx', '_bgp', '_obp0', '_obp1', '_bgpal', '_objpal'];
+
+var Gpu = function (_Serializable) {
+    _inherits(Gpu, _Serializable);
 
     function Gpu(video) {
         _classCallCheck(this, Gpu);
@@ -3901,19 +3937,24 @@ var Gpu = function (_EventEmitter) {
     }]);
 
     return Gpu;
-}(EventEmitter);
+}(Serializable({ include: include }, EventEmitter));
 
 module.exports = Gpu;
 
-},{"../registers":12,"../shims/canvas":13,"../util/number":15,"debug":14,"events":17}],6:[function(require,module,exports){
+},{"../registers":12,"../shims/canvas":13,"../util/number":15,"../util/serializable":16,"debug":14,"events":18}],6:[function(require,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
 var _step = require('debug')('gameboy:lcd:step');
 var stat = require('debug')('gameboy:lcd:stat');
+var Serializable = require('../util/serializable');
 
 var _require = require('../registers'),
     STAT = _require.STAT,
@@ -3924,22 +3965,27 @@ var _require2 = require('../interrupts'),
     INT_40 = _require2.INT_40,
     INT_48 = _require2.INT_48;
 
-var Lcd = function () {
+var Lcd = function (_Serializable) {
+    _inherits(Lcd, _Serializable);
+
     function Lcd(mmu, gpu) {
         _classCallCheck(this, Lcd);
 
-        this._mmu = mmu;
-        this._gpu = gpu;
+        var _this = _possibleConstructorReturn(this, (Lcd.__proto__ || Object.getPrototypeOf(Lcd)).call(this));
+
+        _this._mmu = mmu;
+        _this._gpu = gpu;
 
         // Registers
 
-        this._stat = 0;
-        this._ly = 0;
-        this._lyc = 0;
+        _this._stat = 0;
+        _this._ly = 0;
+        _this._lyc = 0;
 
         // Timer
 
-        this._t = 0;
+        _this._t = 0;
+        return _this;
     }
 
     _createClass(Lcd, [{
@@ -4098,14 +4144,16 @@ var Lcd = function () {
     }]);
 
     return Lcd;
-}();
+}(Serializable({ exclude: ['_mmu', '_gpu'] }));
 
 module.exports = Lcd;
 
-},{"../interrupts":8,"../registers":12,"debug":14}],7:[function(require,module,exports){
+},{"../interrupts":8,"../registers":12,"../util/serializable":16,"debug":14}],7:[function(require,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -4124,6 +4172,14 @@ var Video = function () {
     }
 
     _createClass(Video, [{
+        key: 'fromJSON',
+        value: function fromJSON(obj) {
+            _get(Video.prototype.__proto__ || Object.getPrototypeOf(Video.prototype), 'fromJSON', this).call(this, obj);
+
+            this._ram = new Uint8Array(obj._ram);
+            this._oam = new Uint8Array(obj._oam);
+        }
+    }, {
         key: 'transfer',
         value: function transfer(mmu, val) {
             var start = (val & 0xff) << 8;
@@ -4271,6 +4327,20 @@ exports.INT_60 = 1 << 4;
 },{}],9:[function(require,module,exports){
 'use strict';
 
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var Serializable = require('../util/serializable');
+
 /**
  * 0147 - Cartridge Type
  *
@@ -4292,12 +4362,6 @@ exports.INT_60 = 1 << 4;
  * 10h  MBC3+TIMER+RAM+BATTERY   FEh  HuC3
  * 11h  MBC3
  */
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var CART_TYPE = [];
 
@@ -4356,33 +4420,45 @@ RAM_SIZE[0x01] = 1;
 RAM_SIZE[0x02] = 4;
 RAM_SIZE[0x03] = 16;
 
-var Cart = function () {
+var Cart = function (_Serializable) {
+    _inherits(Cart, _Serializable);
+
     function Cart(rom) {
         _classCallCheck(this, Cart);
+
+        var _this = _possibleConstructorReturn(this, (Cart.__proto__ || Object.getPrototypeOf(Cart)).call(this));
 
         var data = new Uint8Array(rom);
 
         // Cartridge Header
 
-        this._title = this._sliceToString(data, 0x0134, 0x0143);
-        this._type = data[0x0147];
-        this._romSize = data[0x0148];
-        this._ramSize = data[0x0149];
+        _this._title = _this._sliceToString(data, 0x0134, 0x0143);
+        _this._type = data[0x0147];
+        _this._romSize = data[0x0148];
+        _this._ramSize = data[0x0149];
 
         // Memory Map
 
-        this._rom = new Uint8Array(data, 0, 0x8000 * ROM_SIZE[this._romSize]);
-        this._ram = new Uint8Array(0x2000 * RAM_SIZE[this._ramSize]);
+        _this._rom = new Uint8Array(data, 0, 0x8000 * ROM_SIZE[_this._romSize]);
+        _this._ram = new Uint8Array(0x2000 * RAM_SIZE[_this._ramSize]);
 
         // MBC
 
-        this._romBank = 1;
-        this._ramBank = 0;
-        this._ramEnabled = false;
-        this._mode = 0;
+        _this._romBank = 1;
+        _this._ramBank = 0;
+        _this._ramEnabled = false;
+        _this._mode = 0;
+        return _this;
     }
 
     _createClass(Cart, [{
+        key: 'fromJSON',
+        value: function fromJSON(obj) {
+            _get(Cart.prototype.__proto__ || Object.getPrototypeOf(Cart.prototype), 'fromJSON', this).call(this, obj);
+
+            this._ram = new Uint8Array(obj._ram);
+        }
+    }, {
         key: 'readByte',
         value: function readByte(addr) {
             switch (addr >> 12) {
@@ -4441,16 +4517,6 @@ var Cart = function () {
             throw new Error('unmapped address 0x' + addr.toString(16));
         }
     }, {
-        key: 'toJSON',
-        value: function toJSON() {
-            return {
-                title: this._title,
-                type: CART_TYPE[this._type],
-                romSize: this._romSize,
-                ramSize: this._ramSize
-            };
-        }
-    }, {
         key: '_sliceToString',
         value: function _sliceToString(data, begin, end) {
             return String.fromCharCode.apply(String, _toConsumableArray(data.slice(begin, end))).replace(/\0/g, '');
@@ -4458,11 +4524,11 @@ var Cart = function () {
     }]);
 
     return Cart;
-}();
+}(Serializable({ exclude: ['_rom'] }));
 
 module.exports = Cart;
 
-},{}],10:[function(require,module,exports){
+},{"../util/serializable":16}],10:[function(require,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -4559,10 +4625,18 @@ module.exports = Joypad;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var read = require('debug')('gameboy:mmu:read');
 var write = require('debug')('gameboy:mmu:write');
+var Cart = require('./io/cart');
+var Serializable = require('./util/serializable');
 
 var _require = require('./registers'),
     IF = _require.IF,
@@ -4589,32 +4663,39 @@ var _require = require('./registers'),
  * $0000-$00FF  Restart and Interrupt Vectors
  */
 
-var Mmu = function () {
+var exclude = ['video', 'timer', 'lcd', 'gpu', 'joypad'];
+
+var Mmu = function (_Serializable) {
+    _inherits(Mmu, _Serializable);
+
     function Mmu() {
         var bios = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
 
         _classCallCheck(this, Mmu);
 
-        this._bios = new Uint8Array(bios);
-        this._biosDisabled = this._bios.length == 0;
+        var _this = _possibleConstructorReturn(this, (Mmu.__proto__ || Object.getPrototypeOf(Mmu)).call(this));
+
+        _this._bios = new Uint8Array(bios);
+        _this._biosDisabled = _this._bios.length == 0;
 
         // Mappings
 
-        this.video = null;
-        this.timer = null;
-        this.lcd = null;
-        this.gpu = null;
-        this.joypad = null;
+        _this.video = null;
+        _this.timer = null;
+        _this.lcd = null;
+        _this.gpu = null;
+        _this.joypad = null;
 
         // Memory Map
 
-        this._wram = new Uint8Array(0x2000);
-        this._io = new Uint8Array(0x80);
-        this._zram = new Uint8Array(0x7f);
-        this._cart = null;
+        _this._wram = new Uint8Array(0x2000);
+        _this._io = new Uint8Array(0x80);
+        _this._zram = new Uint8Array(0x7f);
+        _this._cart = null;
 
-        this.if = 0;
-        this.ie = 0;
+        _this.if = 0;
+        _this.ie = 0;
+        return _this;
     }
 
     _createClass(Mmu, [{
@@ -4626,9 +4707,19 @@ var Mmu = function () {
             this.ie = 0;
         }
     }, {
+        key: 'fromJSON',
+        value: function fromJSON(obj) {
+            _get(Mmu.prototype.__proto__ || Object.getPrototypeOf(Mmu.prototype), 'fromJSON', this).call(this, obj);
+
+            this._bios = new Uint8Array(obj._bios);
+            this._wram = new Uint8Array(obj._wram);
+            this._io = new Uint8Array(obj._io);
+            this._zram = new Uint8Array(obj._zram);
+        }
+    }, {
         key: 'loadCart',
-        value: function loadCart(cart) {
-            this._cart = cart;
+        value: function loadCart(rom) {
+            this._cart = new Cart(rom);
         }
     }, {
         key: 'readByte',
@@ -4754,12 +4845,12 @@ var Mmu = function () {
     }]);
 
     return Mmu;
-}();
+}(Serializable({ exclude: exclude }));
 
 module.exports = Mmu;
 
 }).call(this,require('_process'))
-},{"./registers":12,"_process":19,"debug":14}],12:[function(require,module,exports){
+},{"./io/cart":9,"./registers":12,"./util/serializable":16,"_process":20,"debug":14}],12:[function(require,module,exports){
 'use strict';
 
 /**
@@ -4992,7 +5083,7 @@ function Canvas(width, height) {
 
 module.exports = Canvas;
 
-},{"canvas":16}],14:[function(require,module,exports){
+},{"canvas":17}],14:[function(require,module,exports){
 "use strict";
 
 module.exports = function () {
@@ -5007,9 +5098,95 @@ Number.prototype.signed = function () {
 };
 
 },{}],16:[function(require,module,exports){
-"use strict";
+'use strict';
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Serializable = function Serializable() {
+    var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    var T = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : function () {
+        function _class() {
+            _classCallCheck(this, _class);
+        }
+
+        return _class;
+    }();
+    return function (_T) {
+        _inherits(_class2, _T);
+
+        function _class2() {
+            _classCallCheck(this, _class2);
+
+            return _possibleConstructorReturn(this, (_class2.__proto__ || Object.getPrototypeOf(_class2)).apply(this, arguments));
+        }
+
+        _createClass(_class2, [{
+            key: 'toJSON',
+            value: function toJSON() {
+                var _this2 = this;
+
+                var exclude = opts.exclude,
+                    include = opts.include;
+
+
+                var exp = function exp() {
+                    return false;
+                };
+                if (exclude) exp = function exp(v) {
+                    return exclude.indexOf(v) < 0;
+                };
+                if (include) exp = function exp(v) {
+                    return include.indexOf(v) > -1;
+                };
+
+                return Object.keys(this).filter(exp).reduce(function (obj, key) {
+                    var value = void 0;
+
+                    var prop = _this2[key];
+                    if ('object' == (typeof prop === 'undefined' ? 'undefined' : _typeof(prop))) {
+                        if ('function' == typeof prop.toJSON) {
+                            value = prop.toJSON();
+                        } else if ('Uint8Array' == prop.constructor.name) {
+                            value = Array.from(_this2[key]);
+                        }
+                    } else value = _this2[key];
+
+                    obj[key] = value;
+                    return obj;
+                }, {});
+            }
+        }, {
+            key: 'fromJSON',
+            value: function fromJSON(obj) {
+                var _this3 = this;
+
+                Object.keys(obj).filter(function (v) {
+                    return _this3.hasOwnProperty(v);
+                }).forEach(function (k) {
+                    var p = _this3[k];
+                    if ('object' == (typeof p === 'undefined' ? 'undefined' : _typeof(p)) && p.fromJSON) p.fromJSON(obj[k]);else _this3[k] = obj[k];
+                });
+            }
+        }]);
+
+        return _class2;
+    }(T);
+};
+
+module.exports = Serializable;
 
 },{}],17:[function(require,module,exports){
+"use strict";
+
+},{}],18:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -5313,7 +5490,7 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 (function (process){
 // Generated by CoffeeScript 1.7.1
 (function() {
@@ -5349,7 +5526,7 @@ function isUndefined(arg) {
 }).call(this);
 
 }).call(this,require('_process'))
-},{"_process":19}],19:[function(require,module,exports){
+},{"_process":20}],20:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -5531,7 +5708,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],20:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 (function (global){
 var now = require('performance-now')
   , root = typeof window === 'undefined' ? global : window
@@ -5607,5 +5784,5 @@ module.exports.polyfill = function() {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"performance-now":18}]},{},[4])(4)
+},{"performance-now":19}]},{},[4])(4)
 });
