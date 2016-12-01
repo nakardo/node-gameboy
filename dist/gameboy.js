@@ -3533,6 +3533,7 @@ var Gameboy = function (_Serializable) {
         var cpu = new Cpu(mmu, timer, lcd);
         var joypad = new Joypad(mmu);
 
+        _this._video = video;
         _this._timer = timer;
         _this._lcd = lcd;
         _this._mmu = mmu;
@@ -3656,6 +3657,8 @@ module.exports = Gameboy;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
@@ -3692,7 +3695,7 @@ GRAY_SHADES[3] = [0, 0, 0];
 var FRAME_WIDTH = 160;
 var FRAME_HEIGHT = 144;
 
-var include = ['_lcdc', '_scy', '_scx', '_wy', '_wx', '_bgp', '_obp0', '_obp1', '_bgpal', '_objpal'];
+var include = ['_lcdc', '_scy', '_scx', '_wy', '_wx', '_bgp', '_obp0', '_obp1'];
 
 var Gpu = function (_Serializable) {
     _inherits(Gpu, _Serializable);
@@ -3730,6 +3733,15 @@ var Gpu = function (_Serializable) {
     }
 
     _createClass(Gpu, [{
+        key: 'fromJSON',
+        value: function fromJSON(obj) {
+            _get(Gpu.prototype.__proto__ || Object.getPrototypeOf(Gpu.prototype), 'fromJSON', this).call(this, obj);
+
+            this._bgpal = this._createPalette(obj._bgp);
+            this._objpal[0] = this._createPalette(obj._obp0);
+            this._objpal[1] = this._createPalette(obj._obp1);
+        }
+    }, {
         key: 'readByte',
         value: function readByte(addr) {
             switch (addr) {
@@ -4157,27 +4169,46 @@ var _get = function get(object, property, receiver) { if (object === null) objec
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var dma = require('debug')('gameboy:video:dma');
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-var Video = function () {
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var dma = require('debug')('gameboy:video:dma');
+var Serializable = require('../util/serializable');
+
+var Video = function (_Serializable) {
+    _inherits(Video, _Serializable);
+
     function Video() {
         _classCallCheck(this, Video);
 
-        this._ram = new Uint8Array(0x2000);
-        this._oam = new Uint8Array(0xa0);
+        var _this = _possibleConstructorReturn(this, (Video.__proto__ || Object.getPrototypeOf(Video)).call(this));
 
-        this.bgMap = [new Array(0x400).fill(0), new Array(0x400).fill(0)];
-        this.tiles = this._initTiles(32 * 32);
-        this.sprites = this._initSprites(40);
+        _this._ram = new Uint8Array(0x2000);
+        _this._oam = new Uint8Array(0xa0);
+
+        _this.bgMap = [new Array(0x400).fill(0), new Array(0x400).fill(0)];
+        _this.tiles = _this._initTiles(32 * 32);
+        _this.sprites = _this._initSprites(40);
+        return _this;
     }
 
     _createClass(Video, [{
         key: 'fromJSON',
         value: function fromJSON(obj) {
+            var _this2 = this;
+
             _get(Video.prototype.__proto__ || Object.getPrototypeOf(Video.prototype), 'fromJSON', this).call(this, obj);
 
             this._ram = new Uint8Array(obj._ram);
             this._oam = new Uint8Array(obj._oam);
+
+            this._ram.forEach(function (v, i) {
+                return _this2.writeByte(0x8000 + i, v);
+            });
+            this._oam.forEach(function (v, i) {
+                return _this2.writeByte(0xfe00 + i, v);
+            });
         }
     }, {
         key: 'transfer',
@@ -4263,11 +4294,11 @@ var Video = function () {
     }]);
 
     return Video;
-}();
+}(Serializable());
 
 module.exports = Video;
 
-},{"debug":14}],8:[function(require,module,exports){
+},{"../util/serializable":16,"debug":14}],8:[function(require,module,exports){
 'use strict';
 
 /**
@@ -5138,7 +5169,7 @@ var Serializable = function Serializable() {
 
 
                 var exp = function exp() {
-                    return false;
+                    return true;
                 };
                 if (exclude) exp = function exp(v) {
                     return exclude.indexOf(v) < 0;
