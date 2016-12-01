@@ -10,11 +10,11 @@ gameboy.start();
 
 if (fs.existsSync('state.sav')) {
     const state = fs.readFileSync('state.sav').toString();
-    gameboy.fromJSON(state);
+    gameboy.fromJSON(JSON.parse(state));
 }
 
 process.on('SIGINT', function () {
     gameboy.pauseResume();
-    console.log(JSON.stringify(gameboy));
+    fs.writeFileSync('state.sav', JSON.stringify(gameboy));
     process.exit(0);
 });
