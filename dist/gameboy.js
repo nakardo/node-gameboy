@@ -3905,6 +3905,17 @@ var Gpu = function (_Serializable) {
             for (var i = sprites.length - 1; i > -1; i--) {
                 var sprite = sprites[i];
 
+                // Attributes/Flags
+
+                var attrs = sprite[3];
+
+                var priority = attrs >> 7 & 1;
+                if (priority) continue;
+
+                var yflip = attrs >> 6 & 1;
+                var xflip = attrs >> 5 & 1;
+                var palette = this._objpal[attrs >> 4 & 1];
+
                 // Position
 
                 var sy = sprite[0] - 16;
@@ -3913,15 +3924,6 @@ var Gpu = function (_Serializable) {
                 // Tile/Pattern Number
 
                 var n = this._lcdc & 4 ? sprite[2] & 0xfe : sprite[2];
-
-                // Attributes/Flags
-
-                var attrs = sprite[3];
-
-                var priority = attrs >> 7 & 1;
-                var yflip = attrs >> 6 & 1;
-                var xflip = attrs >> 5 & 1;
-                var palette = this._objpal[attrs >> 4 & 1];
 
                 // Draw
 
@@ -3932,8 +3934,6 @@ var Gpu = function (_Serializable) {
                     if (x < 0) continue;
 
                     var offset = (line * FRAME_WIDTH + x) * 4;
-
-                    if (priority && data[offset + 0] != 255 && data[offset + 1] != 255 && data[offset + 2] != 255) continue;
 
                     var tile = this._video.tiles[n + (py >> 3 & 1)];
                     var color = tile[py & 7][xflip ? 7 - (x - sx) : x - sx];
