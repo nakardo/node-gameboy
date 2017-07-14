@@ -3695,6 +3695,8 @@ GRAY_SHADES[3] = [0, 0, 0];
 var FRAME_WIDTH = 160;
 var FRAME_HEIGHT = 144;
 
+var MAX_SPRITES = 10;
+
 var include = ['_lcdc', '_scy', '_scx', '_wy', '_wx', '_bgp', '_obp0', '_obp1'];
 
 var Gpu = function (_Serializable) {
@@ -3893,9 +3895,12 @@ var Gpu = function (_Serializable) {
         key: '_drawSprites',
         value: function _drawSprites(line) {
             var height = this._lcdc & 4 ? 16 : 8;
-            var sprites = this._video.sprites.slice().sort(function (a, b) {
-                return a[1] - b[1];
-            });
+            var sprites = this._video.sprites.filter(function (sprite) {
+                var sy = sprite[0] - 16;
+                return line >= sy && line < sy + height;
+            }).filter(function (sprite) {
+                return sprite[1] - 8 < FRAME_WIDTH;
+            }).slice(0, MAX_SPRITES);
 
             for (var i = sprites.length - 1; i > -1; i--) {
                 var sprite = sprites[i];
@@ -3904,9 +3909,6 @@ var Gpu = function (_Serializable) {
 
                 var sy = sprite[0] - 16;
                 var sx = sprite[1] - 8;
-
-                if (!(line >= sy && line < sy + height)) continue;
-                if (sx >= FRAME_WIDTH) continue;
 
                 // Tile/Pattern Number
 
