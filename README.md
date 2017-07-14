@@ -1,13 +1,8 @@
 # node-gameboy
 
-A Gameboy emulator written in JavaScript
+A Gameboy emulator runnable on browsers or server side.
 
 [![npm version](https://badge.fury.io/js/node-gameboy.svg)](https://badge.fury.io/js/node-gameboy)
-
-## About
-
-This is a WIP project, most games are playable though some artifacts and crashes
-may happen. Emulator can be run either on web browsers or server side. 
 
 ## Online Build
 
