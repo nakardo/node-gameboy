@@ -18,7 +18,7 @@ function loadFile () {
 
     var reader = new FileReader();
     reader.onloadend = function () {
-        gameboy.loadCart(reader.result);
+        gameboy.loadCart(new Uint8Array(reader.result));
         gameboy.start();
     };
     reader.readAsArrayBuffer(this.files[0]);
