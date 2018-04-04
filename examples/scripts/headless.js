@@ -11,5 +11,5 @@ gameboy.start();
 let i = 0;
 gameboy.gpu.on('frame', (canvas) => {
     if (++i % 60) return;
-    fs.writeFile(`./screenshot/${i / 60}.png`, canvas.toBuffer());
+    fs.writeFileSync(`./screenshot/${i / 60}.png`, canvas.toBuffer());
 });
