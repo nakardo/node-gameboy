@@ -22,6 +22,7 @@
   "browserify": {
     "transform": [
       "brfs",
+      "browserify-versionify",
       [
         "babelify",
         {
@@ -47,6 +48,7 @@
     "babelify": "^8.0.0",
     "brfs": "^1.4.3",
     "browserify": "^16.1.1",
+    "browserify-versionify": "^1.0.6",
     "gifencoder": "^1.0.6",
     "socket.io": "^2.1.0",
     "uglify-js": "^3.3.18",
