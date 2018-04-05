@@ -65,5 +65,8 @@
   },
   "directories": {
     "example": "examples"
-  }
+  },
+  "files": [
+    "dist"
+  ]
 }

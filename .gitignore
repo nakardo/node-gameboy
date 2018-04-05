@@ -32,3 +32,6 @@ roms
 
 # Generated files
 screenshot
+
+# Builds
+dist
