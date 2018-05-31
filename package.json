@@ -69,6 +69,7 @@
     "example": "examples"
   },
   "files": [
-    "dist"
+    "dist",
+    "lib"
   ]
 }
