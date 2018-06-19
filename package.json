@@ -34,8 +34,7 @@
     ]
   },
   "browser": {
-    "canvas": "./lib/shims/canvas.js",
-    "debug": "./lib/shims/debug.js"
+    "canvas": "./lib/shims/canvas.js"
   },
   "dependencies": {
     "canvas": "^1.4.0",
