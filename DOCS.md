@@ -25,6 +25,7 @@
 - Timers: http://gbdev.gg8.se/wiki/articles/Timer_and_Divider_Registers
 - Joypad: http://www.inf.ufrgs.br/~gozardo/gameboy-gamepad/index.html
 - LY (FF44): http://www.romhacking.net/forum/index.php?topic=17770.0
+- MBC1 Multicart: https://github.com/trekawek/coffee-gb/blob/master/src/main/java/eu/rekawek/coffeegb/memory/cart/type/Mbc1.java
 
 ## Games Lists
 
