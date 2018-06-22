@@ -1,4 +1,4 @@
-// localStorage.debug = 'gameboy:cart';
+// localStorage.debug = '';
 
 var gameboy = window.gameboy = new (window.Gameboy)();
 
