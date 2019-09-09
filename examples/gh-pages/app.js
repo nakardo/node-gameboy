@@ -11,6 +11,15 @@ gameboy.gpu.on('frame', function (offcanvas) {
     ctx.drawImage(offcanvas, 0, 0);
 });
 
+// Load rom
+
+fetch(new Request('./roms/marioland.gb'))
+    .then(response => response.arrayBuffer())
+    .then(function (buffer) {
+        gameboy.loadCart(buffer);
+        gameboy.start();
+    });
+
 // Buttons
 
 function loadFile () {

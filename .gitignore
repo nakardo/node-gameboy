@@ -28,7 +28,7 @@ node_modules
 
 # Roms
 support
-roms
+roms/*
 
 # Generated files
 screenshot
