@@ -13,7 +13,7 @@ gameboy.gpu.on('frame', function (offcanvas) {
 
 // Load rom
 
-fetch(new Request('./roms/marioland.gb'))
+fetch(new Request('./examples/gh-pages/roms/marioland.gb'))
     .then(response => response.arrayBuffer())
     .then(function (buffer) {
         gameboy.loadCart(buffer);
