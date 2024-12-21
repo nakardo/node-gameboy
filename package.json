@@ -50,7 +50,7 @@
     "browserify": "^16.1.1",
     "browserify-versionify": "^1.0.6",
     "gifencoder": "^1.0.6",
-    "socket.io": "^2.1.0",
+    "socket.io": "^4.8.1",
     "uglify-js": "^3.3.18",
     "watchify": "^3.7.0"
   },
